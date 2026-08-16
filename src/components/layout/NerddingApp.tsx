@@ -428,13 +428,64 @@ function LegalPage({ kind }: { kind: "privacy" | "terms" | "community-guidelines
 
 function OAuthCallbackView() {
   const [error, setError] = useState("");
+
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("token");
-    if (!token) { setError("OAuth sign-in did not return a session."); return; }
+
+    if (!token) {
+      setError(
+        `OAuth sign-in did not return a session. URL: ${window.location.href}`
+      );
+      return;
+    }
+
     window.localStorage.setItem("nerdding.token", token);
-    apiFetch<{ data: ApiUser }>("/auth/me").then((response) => { saveAuthSession({ token, user: response.data }); navigate(response.data.onboardingCompleted === false ? "/onboarding" : "/home"); window.location.reload(); }).catch(() => setError("We could not finish signing you in. Please try again."));
+
+    apiFetch<{ data: ApiUser }>("/auth/me")
+      .then((response) => {
+        saveAuthSession({
+          token,
+          user: response.data,
+        });
+
+        const destination =
+          response.data.onboardingCompleted === false
+            ? "/onboarding"
+            : "/home";
+
+        window.history.replaceState({}, "", destination);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+        window.location.reload();
+      })
+      .catch((requestError) => {
+        console.error("OAuth callback failed:", requestError);
+
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Unable to verify your session."
+        );
+      });
   }, []);
-  return <div className="auth-callback"><BrandMark size={48} /><h1>{error ? "Sign-in paused" : "Finishing your sign-in…"}</h1><p>{error || "Securing your Nerdding profile."}</p>{error && <button className="primary-button" onClick={() => navigate("/login")}>Back to sign in</button>}</div>;
+
+  return (
+    <div className="auth-callback">
+      <BrandMark size={48} />
+
+      <h1>{error ? "Sign-in paused" : "Finishing your sign-in…"}</h1>
+
+      <p>{error || "Securing your Nerdding profile."}</p>
+
+      {error && (
+        <button
+          className="primary-button"
+          onClick={() => navigate("/login")}
+        >
+          Back to sign in
+        </button>
+      )}
+    </div>
+  );
 }
 
 function OnboardingView() {
