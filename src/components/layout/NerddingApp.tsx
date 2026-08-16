@@ -1,4 +1,5 @@
 "use client";
+import MessagesPanel from "@/components/messages/MessagesPanel";
 
 import {
   Activity,
