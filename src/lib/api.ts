@@ -1,7 +1,12 @@
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 
 export function startOAuth(provider: "google" | "github") {
-  if (!apiBaseUrl) throw new Error("API is not configured; set NEXT_PUBLIC_API_URL before using OAuth.");
+  if (!apiBaseUrl) {
+    throw new Error(
+      "API is not configured; set NEXT_PUBLIC_API_URL before using OAuth.",
+    );
+  }
+
   window.location.assign(`${apiBaseUrl}/auth/oauth/${provider}`);
 }
 
@@ -18,49 +23,224 @@ export type ApiFundraising = {
   progress: number;
 };
 
-export type ApiUser = { id: string; name: string; username: string; email: string; accountType: "user" | "agent"; avatarUrl?: string | null; onboardingCompleted: boolean };
+export type ApiUser = {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  accountType: "user" | "agent";
+  avatarUrl?: string | null;
+  onboardingCompleted: boolean;
+};
 
 export function getAuthToken() {
   if (typeof window === "undefined") return null;
+
   return window.localStorage.getItem("nerdding.token");
 }
 
-export function saveAuthSession(session: { token: string; user: ApiUser }) {
+export function saveAuthSession(session: {
+  token: string;
+  user: ApiUser;
+}) {
   window.localStorage.setItem("nerdding.token", session.token);
-  window.localStorage.setItem("nerdding.user", JSON.stringify(session.user));
+  window.localStorage.setItem(
+    "nerdding.user",
+    JSON.stringify(session.user),
+  );
+}
+
+export function saveAuthToken(token: string) {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.setItem("nerdding.token", token);
 }
 
 export function clearAuthSession() {
   if (typeof window === "undefined") return;
+
   window.localStorage.removeItem("nerdding.token");
   window.localStorage.removeItem("nerdding.user");
 }
 
 export function getSavedUser(): ApiUser | null {
   if (typeof window === "undefined") return null;
-  try { return JSON.parse(window.localStorage.getItem("nerdding.user") ?? "null") as ApiUser | null; } catch { return null; }
+
+  try {
+    const raw = window.localStorage.getItem("nerdding.user");
+
+    if (!raw) return null;
+
+    return JSON.parse(raw) as ApiUser;
+  } catch {
+    return null;
+  }
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!apiBaseUrl) throw new Error("API is not configured; set NEXT_PUBLIC_API_URL before using this action.");
+/**
+ * Fetch the currently authenticated Nerddings user.
+ *
+ * This is the important missing step after OAuth.
+ */
+export async function fetchCurrentUser(): Promise<ApiUser> {
   const token = getAuthToken();
-  const response = await fetch(`${apiBaseUrl}${path}`, { ...init, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(init?.headers ?? {}) } });
-  if (!response.ok) {
-    let message = `API request failed: ${response.status}`;
-    try { const body = await response.json() as { error?: string }; if (body.error) message = body.error; } catch { /* use status */ }
-    const error = new Error(message) as Error & { status?: number };
-    error.status = response.status;
+
+  if (!token) {
+    throw new Error("No authentication token found.");
+  }
+
+  const response = await apiFetch<{ data: ApiUser }>("/auth/me");
+
+  if (!response?.data) {
+    throw new Error("Authenticated user was not returned by the API.");
+  }
+
+  return response.data;
+}
+
+/**
+ * Hydrate the local session from the backend.
+ *
+ * Used after OAuth callback and on application startup.
+ */
+export async function hydrateAuthSession(): Promise<ApiUser | null> {
+  const token = getAuthToken();
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const user = await fetchCurrentUser();
+
+    window.localStorage.setItem(
+      "nerdding.user",
+      JSON.stringify(user),
+    );
+
+    return user;
+  } catch (error) {
+    const status =
+      error instanceof Error &&
+      "status" in error
+        ? (error as Error & { status?: number }).status
+        : undefined;
+
+    /*
+     * Only clear the session when the backend explicitly
+     * says that authentication is invalid.
+     *
+     * Don't destroy the session for temporary network errors.
+     */
+    if (status === 401 || status === 404) {
+      clearAuthSession();
+    }
+
     throw error;
   }
-  if (response.status === 204) return undefined as T;
+}
+
+export async function apiFetch<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  if (!apiBaseUrl) {
+    throw new Error(
+      "API is not configured; set NEXT_PUBLIC_API_URL before using this action.",
+    );
+  }
+
+  const token = getAuthToken();
+
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+
+      ...(token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {}),
+
+      ...(init?.headers ?? {}),
+    },
+  });
+
+  if (!response.ok) {
+    let message = `API request failed: ${response.status}`;
+
+    try {
+      const body = (await response.json()) as {
+        error?: string;
+      };
+
+      if (body.error) {
+        message = body.error;
+      }
+    } catch {
+      // Keep default status message.
+    }
+
+    const error = new Error(message) as Error & {
+      status?: number;
+    };
+
+    error.status = response.status;
+
+    throw error;
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   return response.json() as Promise<T>;
 }
 
 export async function uploadMedia(file: File) {
-  if (!file.type.match(/^(image|video)\//)) throw new Error("Only images and videos can be uploaded.");
-  if (file.size > 25 * 1024 * 1024) throw new Error("Images and videos must be under 25 MB.");
-  const signed = await apiFetch<{ data: { signedUrl: string; path: string; contentType: string; publicUrl: string } }>("/uploads/signed-url", { method: "POST", body: JSON.stringify({ fileName: file.name, contentType: file.type, size: file.size }) });
-  const uploaded = await fetch(signed.data.signedUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-  if (!uploaded.ok) throw new Error("Media upload failed");
-  return { path: signed.data.path, publicUrl: signed.data.publicUrl, mimeType: file.type };
+  if (!file.type.match(/^(image|video)\//)) {
+    throw new Error("Only images and videos can be uploaded.");
+  }
+
+  if (file.size > 25 * 1024 * 1024) {
+    throw new Error("Images and videos must be under 25 MB.");
+  }
+
+  const signed = await apiFetch<{
+    data: {
+      signedUrl: string;
+      path: string;
+      contentType: string;
+      publicUrl: string;
+    };
+  }>("/uploads/signed-url", {
+    method: "POST",
+    body: JSON.stringify({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+    }),
+  });
+
+  const uploaded = await fetch(
+    signed.data.signedUrl,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type,
+      },
+      body: file,
+    },
+  );
+
+  if (!uploaded.ok) {
+    throw new Error("Media upload failed");
+  }
+
+  return {
+    path: signed.data.path,
+    publicUrl: signed.data.publicUrl,
+    mimeType: file.type,
+  };
 }
