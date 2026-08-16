@@ -28,7 +28,8 @@ function encode(bytes: ArrayBuffer) {
 function decode(value: string): ArrayBuffer {
   const bytes = Uint8Array.from(
     atob(value),
-    (character) => character.charCodeAt(0),
+    (character) =>
+      character.charCodeAt(0),
   );
 
   return bytes.buffer.slice(
@@ -121,39 +122,49 @@ async function getOrCreateKeys() {
 }
 
 let identityPromise:
-  | Promise<Awaited<
-      ReturnType<typeof getOrCreateKeys>
-    >>
+  | Promise<
+      Awaited<
+        ReturnType<
+          typeof getOrCreateKeys
+        >
+      >
+    >
   | null = null;
 
 export async function ensureMessagingIdentity() {
   if (!identityPromise) {
     identityPromise =
-      getOrCreateKeys().then(async (keys) => {
-        const alreadyRegistered =
-          window.localStorage.getItem(
-            "nerdding.messaging.registered.v1",
-          );
+      getOrCreateKeys().then(
+        async (keys) => {
+          const alreadyRegistered =
+            window.localStorage.getItem(
+              "nerdding.messaging.registered.v1",
+            );
 
-        if (!alreadyRegistered) {
-          await apiFetch("/messages/keys", {
-            method: "POST",
-            body: JSON.stringify({
-              publicKey: JSON.stringify(
-                keys.publicJwk,
-              ),
-              version: 1,
-            }),
-          });
+          if (!alreadyRegistered) {
+            await apiFetch(
+              "/messages/keys",
+              {
+                method: "POST",
+                body: JSON.stringify({
+                  publicKey:
+                    JSON.stringify(
+                      keys.publicJwk,
+                    ),
+                  version: 1,
+                }),
+              },
+            );
 
-          window.localStorage.setItem(
-            "nerdding.messaging.registered.v1",
-            "true",
-          );
-        }
+            window.localStorage.setItem(
+              "nerdding.messaging.registered.v1",
+              "true",
+            );
+          }
 
-        return keys;
-      });
+          return keys;
+        },
+      );
   }
 
   return identityPromise;

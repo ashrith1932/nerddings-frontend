@@ -1,7 +1,20 @@
 import { getAuthToken } from "@/lib/api";
 
 export type RealtimeMessage = {
-  type: string;
+  type:
+    | "auth.success"
+    | "auth.error"
+    | "connection.connecting"
+    | "connection.open"
+    | "connection.closed"
+    | "message.sent"
+    | "message.new"
+    | "message.delivered"
+    | "message.read"
+    | "message.failed"
+    | "error"
+    | "pong"
+    | string;
   clientMessageId?: string;
   message?: {
     id: string;
@@ -17,16 +30,14 @@ export type RealtimeMessage = {
     createdAt: string;
   };
   messageId?: string;
-  deliveredAt?: string;
-  readAt?: string;
+  deliveredAt?: string | null;
+  readAt?: string | null;
   userId?: string;
-  online?: boolean;
   error?: string;
+  replay?: boolean;
 };
 
-type Listener = (event: RealtimeMessage) => void;
-
-type QueuedMessage = {
+export type OutgoingRealtimeMessage = {
   clientMessageId: string;
   recipientId: string;
   ciphertext: string;
@@ -36,20 +47,31 @@ type QueuedMessage = {
   encryptionVersion: number;
 };
 
-type QueuedControl =
-  | { type: "message.delivered"; messageId: string }
-  | { type: "message.read"; messageId: string }
+type ControlMessage =
+  | {
+      type: "message.delivered";
+      messageId: string;
+      clientMessageId?: string;
+    }
+  | {
+      type: "message.read";
+      messageId: string;
+      clientMessageId?: string;
+    }
   | { type: "conversation.read"; conversationId: string };
 
+type Listener = (event: RealtimeMessage) => void;
+
 const listeners = new Set<Listener>();
-const messageQueue: QueuedMessage[] = [];
-const controlQueue: QueuedControl[] = [];
+const messageQueue: OutgoingRealtimeMessage[] = [];
+const controlQueue: ControlMessage[] = [];
 
 let socket: WebSocket | null = null;
 let reconnectTimer: number | null = null;
+let heartbeatTimer: number | null = null;
 let reconnectDelay = 1000;
-let manuallyDisconnected = false;
 let authenticated = false;
+let explicitlyDisconnected = false;
 
 function emit(event: RealtimeMessage) {
   for (const listener of listeners) {
@@ -63,6 +85,7 @@ function emit(event: RealtimeMessage) {
 
 function getRealtimeUrl() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+
   if (!apiUrl) {
     throw new Error("NEXT_PUBLIC_API_URL is not configured.");
   }
@@ -70,7 +93,7 @@ function getRealtimeUrl() {
   return `${apiUrl.replace(/^http/, "ws")}/messages/ws`;
 }
 
-function isOpen() {
+function ready() {
   return (
     socket !== null &&
     socket.readyState === WebSocket.OPEN &&
@@ -78,36 +101,75 @@ function isOpen() {
   );
 }
 
-function safeSend(payload: unknown) {
-  if (!isOpen()) return false;
+function rawSend(payload: unknown) {
+  if (!ready()) {
+    return false;
+  }
 
   try {
     socket!.send(JSON.stringify(payload));
     return true;
-  } catch {
+  } catch (error) {
+    console.error("[Realtime] send failed", error);
     return false;
   }
 }
 
-function flushQueues() {
-  if (!isOpen()) return;
+function stopHeartbeat() {
+  if (heartbeatTimer !== null && typeof window !== "undefined") {
+    window.clearInterval(heartbeatTimer);
+  }
 
-  while (messageQueue.length) {
+  heartbeatTimer = null;
+}
+
+function startHeartbeat() {
+  stopHeartbeat();
+
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  heartbeatTimer = window.setInterval(() => {
+    if (ready()) {
+      try {
+        socket!.send(JSON.stringify({ type: "ping" }));
+      } catch {
+        socket?.close();
+      }
+    }
+  }, 20000);
+}
+
+function flushQueues() {
+  if (!ready()) {
+    return;
+  }
+
+  while (messageQueue.length > 0) {
     const payload = messageQueue[0];
-    if (!safeSend({ type: "message.send", ...payload })) return;
+
+    if (!rawSend({ type: "message.send", ...payload })) {
+      return;
+    }
+
     messageQueue.shift();
   }
 
-  while (controlQueue.length) {
+  while (controlQueue.length > 0) {
     const payload = controlQueue[0];
-    if (!safeSend(payload)) return;
+
+    if (!rawSend(payload)) {
+      return;
+    }
+
     controlQueue.shift();
   }
 }
 
 function scheduleReconnect() {
   if (
-    manuallyDisconnected ||
+    explicitlyDisconnected ||
     reconnectTimer !== null ||
     typeof window === "undefined"
   ) {
@@ -123,10 +185,17 @@ function scheduleReconnect() {
 }
 
 export function connectRealtime() {
-  if (typeof window === "undefined" || manuallyDisconnected) return;
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  explicitlyDisconnected = false;
 
   const token = getAuthToken();
-  if (!token) return;
+
+  if (!token) {
+    return;
+  }
 
   if (
     socket &&
@@ -137,37 +206,70 @@ export function connectRealtime() {
   }
 
   authenticated = false;
+  stopHeartbeat();
 
   emit({ type: "connection.connecting" });
 
+  let url: string;
+
   try {
-    socket = new WebSocket(getRealtimeUrl());
+    url = getRealtimeUrl();
+  } catch (error) {
+    emit({
+      type: "auth.error",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Realtime URL is unavailable.",
+    });
+    scheduleReconnect();
+    return;
+  }
+
+  try {
+    socket = new WebSocket(url);
   } catch (error) {
     console.error("[Realtime] WebSocket creation failed", error);
     scheduleReconnect();
     return;
   }
 
-  socket.onopen = () => {
-    reconnectDelay = 1000;
+  const currentSocket = socket;
 
-    socket?.send(
-      JSON.stringify({
-        type: "auth",
-        token,
-      }),
-    );
+  currentSocket.onopen = () => {
+    if (socket !== currentSocket) {
+      currentSocket.close();
+      return;
+    }
+
+    reconnectDelay = 1000;
+    emit({ type: "connection.open" });
+
+    try {
+      currentSocket.send(
+        JSON.stringify({
+          type: "auth",
+          token,
+        }),
+      );
+    } catch {
+      currentSocket.close();
+    }
   };
 
-  socket.onmessage = (event) => {
+  currentSocket.onmessage = (event) => {
     try {
       const data = JSON.parse(String(event.data)) as RealtimeMessage;
 
       if (data.type === "auth.success") {
         authenticated = true;
         reconnectDelay = 1000;
-      } else if (data.type === "auth.error") {
+        startHeartbeat();
+      }
+
+      if (data.type === "auth.error") {
         authenticated = false;
+        stopHeartbeat();
       }
 
       emit(data);
@@ -176,27 +278,33 @@ export function connectRealtime() {
         flushQueues();
       }
     } catch (error) {
-      console.error("[Realtime] Invalid WebSocket event", error);
+      console.error("[Realtime] invalid WebSocket event", error);
     }
   };
 
-  socket.onclose = () => {
+  currentSocket.onclose = () => {
+    if (socket !== currentSocket) {
+      return;
+    }
+
     authenticated = false;
+    stopHeartbeat();
     socket = null;
 
     emit({ type: "connection.closed" });
     scheduleReconnect();
   };
 
-  socket.onerror = (error) => {
+  currentSocket.onerror = (error) => {
     console.error("[Realtime] WebSocket error", error);
-    socket?.close();
+    currentSocket.close();
   };
 }
 
 export function disconnectRealtime() {
-  manuallyDisconnected = true;
+  explicitlyDisconnected = true;
   authenticated = false;
+  stopHeartbeat();
 
   if (reconnectTimer !== null && typeof window !== "undefined") {
     window.clearTimeout(reconnectTimer);
@@ -216,45 +324,95 @@ export function subscribeRealtime(listener: Listener) {
   };
 }
 
-export function sendRealtimeMessage(payload: QueuedMessage) {
-  if (safeSend({ type: "message.send", ...payload })) return;
+export function sendRealtimeMessage(payload: OutgoingRealtimeMessage) {
+  if (rawSend({ type: "message.send", ...payload })) {
+    return;
+  }
 
-  const duplicate = messageQueue.some(
-    (item) => item.clientMessageId === payload.clientMessageId,
-  );
-
-  if (!duplicate) {
+  if (
+    !messageQueue.some(
+      (item) => item.clientMessageId === payload.clientMessageId,
+    )
+  ) {
     messageQueue.push(payload);
   }
 
   connectRealtime();
 }
 
-function queueControl(payload: QueuedControl) {
-  if (safeSend(payload)) return;
+function queueControl(payload: ControlMessage) {
+  if (rawSend(payload)) {
+    return;
+  }
 
-  const duplicate = controlQueue.some(
-    (item) =>
-      item.type === payload.type &&
-      ("messageId" in item ? item.messageId : undefined) ===
-        ("messageId" in payload ? payload.messageId : undefined) &&
-      ("conversationId" in item ? item.conversationId : undefined) ===
-        ("conversationId" in payload ? payload.conversationId : undefined),
-  );
+  const duplicate = controlQueue.some((item) => {
+    if (item.type !== payload.type) {
+      return false;
+    }
 
-  if (!duplicate) controlQueue.push(payload);
+    if (
+      "messageId" in item &&
+      "messageId" in payload
+    ) {
+      return item.messageId === payload.messageId;
+    }
+
+    if (
+      "conversationId" in item &&
+      "conversationId" in payload
+    ) {
+      return item.conversationId === payload.conversationId;
+    }
+
+    return false;
+  });
+
+  if (!duplicate) {
+    controlQueue.push(payload);
+  }
 
   connectRealtime();
 }
 
-export function sendDelivered(messageId: string) {
-  queueControl({ type: "message.delivered", messageId });
+export function sendDelivered(
+  messageId: string,
+  clientMessageId?: string,
+) {
+  queueControl({
+    type: "message.delivered",
+    messageId,
+    ...(clientMessageId
+      ? { clientMessageId }
+      : {}),
+  });
 }
 
-export function sendRead(messageId: string) {
-  queueControl({ type: "message.read", messageId });
+export function sendRead(
+  messageId: string,
+  clientMessageId?: string,
+) {
+  queueControl({
+    type: "message.read",
+    messageId,
+    ...(clientMessageId
+      ? { clientMessageId }
+      : {}),
+  });
 }
 
 export function sendConversationRead(conversationId: string) {
-  queueControl({ type: "conversation.read", conversationId });
+  queueControl({
+    type: "conversation.read",
+    conversationId,
+  });
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("online", connectRealtime);
+
+  window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      connectRealtime();
+    }
+  });
 }

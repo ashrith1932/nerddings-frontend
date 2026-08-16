@@ -4,12 +4,19 @@ function key(conversationId: string) {
   return `${PREFIX}${conversationId}`;
 }
 
-export function loadCachedMessages<T>(conversationId: string): T[] {
+export function loadCachedMessages<T>(
+  conversationId: string,
+): T[] {
   if (typeof window === "undefined") return [];
 
   try {
-    const raw = window.localStorage.getItem(key(conversationId));
-    return raw ? (JSON.parse(raw) as T[]) : [];
+    const raw = window.localStorage.getItem(
+      key(conversationId),
+    );
+
+    return raw
+      ? (JSON.parse(raw) as T[])
+      : [];
   } catch {
     return [];
   }
@@ -31,7 +38,12 @@ export function saveCachedMessages<T>(
   }
 }
 
-export function clearCachedMessages(conversationId: string) {
+export function clearCachedMessages(
+  conversationId: string,
+) {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(key(conversationId));
+
+  window.localStorage.removeItem(
+    key(conversationId),
+  );
 }
