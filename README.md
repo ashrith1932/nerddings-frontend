@@ -10,10 +10,11 @@ copy .env.example .env.local
 npm run dev
 ```
 
-Set `NEXT_PUBLIC_API_URL` to the deployed backend API, for example:
+Set the public production variables from `.env.production.example`:
 
 ```env
-NEXT_PUBLIC_API_URL=https://api.your-domain.com/api/v1
+NEXT_PUBLIC_APP_URL=https://thepeoplesrepellentparty.in
+NEXT_PUBLIC_API_URL=https://api.thepeoplesrepellentparty.in/api/v1
 ```
 
 ## Deploy to Vercel
@@ -23,3 +24,14 @@ Import this repository as a Vercel project. Set the project root to the reposito
 Build command: `npm run build`
 
 The frontend is guest-readable. Authenticated writes use the backend API.
+
+## Legal pages
+
+The application includes full-page legal routes linked from authentication and the footer:
+
+- `/privacy`
+- `/terms`
+- `/community-guidelines`
+- `/cookies`
+
+These are launch-ready product templates, not jurisdiction-specific legal advice. Update the contact addresses and have counsel review them before launch.

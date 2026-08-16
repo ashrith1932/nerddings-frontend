@@ -1,5 +1,10 @@
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 
+export function startOAuth(provider: "google" | "github") {
+  if (!apiBaseUrl) throw new Error("API is not configured; set NEXT_PUBLIC_API_URL before using OAuth.");
+  window.location.assign(`${apiBaseUrl}/auth/oauth/${provider}`);
+}
+
 export type ApiFundraising = {
   id: string;
   agentId: string;
@@ -13,7 +18,7 @@ export type ApiFundraising = {
   progress: number;
 };
 
-export type ApiUser = { id: string; name: string; username: string; email: string; accountType: "user" | "agent"; avatarUrl?: string | null };
+export type ApiUser = { id: string; name: string; username: string; email: string; accountType: "user" | "agent"; avatarUrl?: string | null; onboardingCompleted: boolean };
 
 export function getAuthToken() {
   if (typeof window === "undefined") return null;
@@ -52,6 +57,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 }
 
 export async function uploadMedia(file: File) {
+  if (!file.type.match(/^(image|video)\//)) throw new Error("Only images and videos can be uploaded.");
+  if (file.size > 25 * 1024 * 1024) throw new Error("Images and videos must be under 25 MB.");
   const signed = await apiFetch<{ data: { signedUrl: string; path: string; contentType: string; publicUrl: string } }>("/uploads/signed-url", { method: "POST", body: JSON.stringify({ fileName: file.name, contentType: file.type, size: file.size }) });
   const uploaded = await fetch(signed.data.signedUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
   if (!uploaded.ok) throw new Error("Media upload failed");

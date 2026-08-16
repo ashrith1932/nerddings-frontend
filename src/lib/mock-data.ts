@@ -48,6 +48,7 @@ export type Post = {
   saved?: boolean;
   liked?: boolean;
   proof?: string;
+  media?: { publicUrl: string | null; mimeType: string }[];
 };
 
 export type TrendingPost = {
