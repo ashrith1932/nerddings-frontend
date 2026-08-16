@@ -5,6 +5,7 @@ import {
   KeyboardEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -31,6 +32,9 @@ import {
 import {
   connectRealtime,
   sendRealtimeMessage,
+  sendDelivered,
+  sendRead,
+  sendConversationRead,
   subscribeRealtime,
   type RealtimeMessage,
 } from "@/lib/realtime";
@@ -61,6 +65,8 @@ type Conversation = {
     senderKey?: string | null;
     recipientKey?: string | null;
     encryptionVersion: number;
+    deliveredAt?: string | null;
+    readAt?: string | null;
     createdAt: string;
   } | null;
 };
@@ -77,6 +83,9 @@ type ServerMessage = {
   recipientKey?: string | null;
 
   encryptionVersion: number;
+
+  deliveredAt?: string | null;
+  readAt?: string | null;
 
   createdAt: string;
 };
@@ -170,6 +179,14 @@ export default function MessagesPanel() {
   ] = useState<
     string | null
   >(null);
+
+  const activeConversationRef =
+    useRef<string | null>(null);
+
+  useEffect(() => {
+    activeConversationRef.current =
+      activeConversationId;
+  }, [activeConversationId]);
 
   const activeConversation =
     useMemo(
@@ -363,8 +380,23 @@ export default function MessagesPanel() {
                 ...incoming,
                 text,
                 status:
-                  "delivered",
+                  incoming.readAt
+                    ? "read"
+                    : "delivered",
               };
+
+            sendDelivered(
+              incoming.id,
+            );
+
+            if (
+              incoming.conversationId ===
+              activeConversationRef.current
+            ) {
+              sendRead(
+                incoming.id,
+              );
+            }
 
             setMessages(
               (current) => {
@@ -441,6 +473,62 @@ export default function MessagesPanel() {
                 // Ignore background refresh errors.
               }
             }
+
+            return;
+          }
+
+          if (
+            event.type ===
+            "message.delivered" &&
+            event.messageId
+          ) {
+            setMessages(
+              (current) =>
+                current.map(
+                  (message) =>
+                    message.id ===
+                    event.messageId
+                      ? {
+                          ...message,
+                          status:
+                            message.status ===
+                            "read"
+                              ? "read"
+                              : "delivered",
+                          deliveredAt:
+                            event.deliveredAt ??
+                            message.deliveredAt ??
+                            null,
+                        }
+                      : message,
+                ),
+            );
+
+            return;
+          }
+
+          if (
+            event.type ===
+            "message.read" &&
+            event.messageId
+          ) {
+            setMessages(
+              (current) =>
+                current.map(
+                  (message) =>
+                    message.id ===
+                    event.messageId
+                      ? {
+                          ...message,
+                          status: "read",
+                          readAt:
+                            event.readAt ??
+                            message.readAt ??
+                            null,
+                        }
+                      : message,
+                ),
+            );
 
             return;
           }
@@ -592,7 +680,11 @@ export default function MessagesPanel() {
                   status:
                     message.senderId ===
                     currentUser?.id
-                      ? "sent"
+                      ? message.readAt
+                        ? "read"
+                        : message.deliveredAt
+                          ? "delivered"
+                          : "sent"
                       : "delivered",
                 } satisfies UiMessage;
               },
@@ -606,6 +698,10 @@ export default function MessagesPanel() {
         saveCachedMessages(
           conversationId as string,
           decrypted,
+        );
+
+        sendConversationRead(
+          conversationId as string,
         );
       } catch (error) {
         if (!cancelled) {
@@ -1349,23 +1445,16 @@ export default function MessagesPanel() {
                             {own &&
                               message.status ===
                                 "sent" && (
-                                <>
-                                  <Check
-                                    size={
-                                      12
-                                    }
-                                  />
-                                  Sent
-                                </>
+                                <Check
+                                  size={12}
+                                />
                               )}
 
                             {own &&
                               message.status ===
                                 "delivered" && (
                                 <CheckCheck
-                                  size={
-                                    13
-                                  }
+                                  size={13}
                                 />
                               )}
 
@@ -1373,9 +1462,8 @@ export default function MessagesPanel() {
                               message.status ===
                                 "read" && (
                                 <CheckCheck
-                                  size={
-                                    13
-                                  }
+                                  size={13}
+                                  strokeWidth={3}
                                 />
                               )}
 
