@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import {
+  ArrowLeft,
   Check,
   CheckCheck,
   Loader2,
@@ -30,7 +31,6 @@ import {
 } from "@/lib/messaging";
 
 import {
-  connectRealtime,
   sendRealtimeMessage,
   sendDelivered,
   sendRead,
@@ -123,6 +123,145 @@ function formatTime(
   }
 }
 
+
+function SkeletonRow() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 12,
+        alignItems: "center",
+        padding: "14px 18px",
+      }}
+    >
+      <div
+        className="message-skeleton"
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: "50%",
+          flexShrink: 0,
+        }}
+      />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          className="message-skeleton"
+          style={{
+            width: "42%",
+            height: 12,
+            borderRadius: 6,
+            marginBottom: 9,
+          }}
+        />
+        <div
+          className="message-skeleton"
+          style={{
+            width: "78%",
+            height: 10,
+            borderRadius: 5,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MessageSkeleton() {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 620,
+        margin: "auto",
+        padding: "24px 8px",
+      }}
+    >
+      {[0, 1, 2, 3, 4, 5].map((item) => (
+        <div
+          key={item}
+          style={{
+            display: "flex",
+            justifyContent:
+              item % 2 === 0 ? "flex-start" : "flex-end",
+            marginBottom: 18,
+          }}
+        >
+          <div
+            className="message-skeleton"
+            style={{
+              width:
+                item % 3 === 0
+                  ? "48%"
+                  : item % 3 === 1
+                    ? "62%"
+                    : "38%",
+              height: 46,
+              borderRadius:
+                item % 2 === 0
+                  ? "18px 18px 18px 4px"
+                  : "18px 18px 4px 18px",
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MessageStatus({
+  status,
+}: {
+  status: MessageStatus;
+}) {
+  if (status === "sending") {
+    return (
+      <Loader2
+        size={12}
+        className="animate-spin"
+        aria-label="Sending"
+      />
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <span
+        style={{
+          color: "#ef4444",
+          fontWeight: 700,
+        }}
+      >
+        !
+      </span>
+    );
+  }
+
+  if (status === "delivered") {
+    return (
+      <CheckCheck
+        size={14}
+        strokeWidth={2.4}
+      />
+    );
+  }
+
+  if (status === "read") {
+    return (
+      <CheckCheck
+        size={14}
+        strokeWidth={3}
+      />
+    );
+  }
+
+  return (
+    <Check
+      size={14}
+      strokeWidth={2.4}
+    />
+  );
+}
+
 export default function MessagesPanel() {
   const currentUser =
     getSavedUser();
@@ -164,11 +303,6 @@ export default function MessagesPanel() {
   ] = useState(false);
 
   const [
-    sending,
-    setSending,
-  ] = useState(false);
-
-  const [
     realtimeConnected,
     setRealtimeConnected,
   ] = useState(false);
@@ -183,10 +317,28 @@ export default function MessagesPanel() {
   const activeConversationRef =
     useRef<string | null>(null);
 
+  const conversationsRef =
+    useRef<Conversation[]>([]);
+
+  const pendingMessagesRef =
+    useRef(
+      new Map<string, UiMessage>(),
+    );
+
+  const messagesEndRef =
+    useRef<HTMLDivElement | null>(
+      null,
+    );
+
   useEffect(() => {
     activeConversationRef.current =
       activeConversationId;
   }, [activeConversationId]);
+
+  useEffect(() => {
+    conversationsRef.current =
+      conversations;
+  }, [conversations]);
 
   const activeConversation =
     useMemo(
@@ -201,6 +353,22 @@ export default function MessagesPanel() {
         activeConversationId,
       ],
     );
+
+  useEffect(() => {
+    if (!activeConversationId) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    });
+  }, [
+    activeConversationId,
+    messages.length,
+  ]);
 
   /*
    * ------------------------------------------------
@@ -232,6 +400,9 @@ export default function MessagesPanel() {
           );
 
         if (!cancelled) {
+          conversationsRef.current =
+            response.data;
+
           setConversations(
             response.data,
           );
@@ -277,129 +448,120 @@ export default function MessagesPanel() {
    * ------------------------------------------------
    */
   useEffect(() => {
-    connectRealtime();
-
     const unsubscribe =
       subscribeRealtime(
-        async (
-          event: RealtimeMessage,
-        ) => {
-          /*
-           * Server accepted our message.
-           */
+        async (event: RealtimeMessage) => {
+          if (event.type === "auth.success") {
+            setRealtimeConnected(true);
+            return;
+          }
+
           if (
-            event.type ===
-              "message.sent" &&
+            event.type === "connection.closed" ||
+            event.type === "auth.error"
+          ) {
+            setRealtimeConnected(false);
+            return;
+          }
+
+          if (
+            event.type === "message.sent" &&
             event.message &&
             event.clientMessageId
           ) {
             const serverMessage =
               event.message;
 
-            setMessages(
-              (current) =>
+            pendingMessagesRef.current.delete(
+              event.clientMessageId,
+            );
+
+            setMessages((current) => {
+              const updated =
                 current.map(
                   (message) =>
                     message.clientMessageId ===
                     event.clientMessageId
-                      ? {
+                      ? ({
                           ...message,
-
-                          id: serverMessage.id,
-
-                          conversationId:
-                            serverMessage.conversationId,
-
-                          ciphertext:
-                            serverMessage.ciphertext,
-
-                          iv: serverMessage.iv,
-
-                          senderKey:
-                            serverMessage.senderKey,
-
-                          recipientKey:
-                            serverMessage.recipientKey,
-
-                          encryptionVersion:
-                            serverMessage.encryptionVersion,
-
-                          createdAt:
-                            serverMessage.createdAt,
-
-                          status:
-                            "sent",
-
-                          optimistic:
-                            false,
-                        }
+                          ...serverMessage,
+                          status: (
+                            serverMessage.readAt
+                              ? "read"
+                              : serverMessage.deliveredAt
+                                ? "delivered"
+                                : "sent"
+                          ) as MessageStatus,
+                          optimistic: false,
+                        } as UiMessage)
                       : message,
-                ),
+                );
+
+              saveCachedMessages(
+                serverMessage.conversationId,
+                updated,
+              );
+
+              return updated;
+            });
+
+            setConversations((current) =>
+              current.map(
+                (conversation) =>
+                  conversation.id ===
+                  serverMessage.conversationId
+                    ? {
+                        ...conversation,
+                        lastMessage:
+                          serverMessage,
+                      }
+                    : conversation,
+              ),
             );
 
             return;
           }
 
-          /*
-           * A message from another user.
-           */
           if (
-            event.type ===
-              "message.new" &&
+            event.type === "message.new" &&
             event.message
           ) {
             const incoming =
               event.message;
 
+            const isActive =
+              incoming.conversationId ===
+              activeConversationRef.current;
+
             /*
-             * Don't add our own message
-             * twice.
+             * IMPORTANT:
+             * Insert the incoming message into React
+             * BEFORE decrypting it. RSA/AES WebCrypto
+             * is asynchronous, so the UI should not wait
+             * for decryption before showing the bubble.
              */
-            if (
-              incoming.senderId ===
-              currentUser?.id
-            ) {
-              return;
-            }
-
-            let text =
-              "Encrypted message";
-
-            try {
-              text =
-                await decryptMessage(
-                  incoming,
-                );
-            } catch {
-              text =
-                "Unable to decrypt message";
-            }
-
             const newMessage: UiMessage =
               {
                 ...incoming,
-                text,
+                text:
+                  "Decrypting...",
                 status:
                   incoming.readAt
                     ? "read"
                     : "delivered",
               };
 
+            /*
+             * Delivery means the recipient's browser
+             * received the realtime event. Do this
+             * immediately.
+             */
             sendDelivered(
               incoming.id,
             );
 
-            if (
-              incoming.conversationId ===
-              activeConversationRef.current
-            ) {
-              sendRead(
-                incoming.id,
-              );
-            }
-
-            setMessages(
-              (current) => {
+            if (isActive) {
+              setMessages((current) => {
                 if (
                   current.some(
                     (message) =>
@@ -410,11 +572,10 @@ export default function MessagesPanel() {
                   return current;
                 }
 
-                const updated =
-                  [
-                    ...current,
-                    newMessage,
-                  ];
+                const updated = [
+                  ...current,
+                  newMessage,
+                ];
 
                 saveCachedMessages(
                   incoming.conversationId,
@@ -422,37 +583,85 @@ export default function MessagesPanel() {
                 );
 
                 return updated;
-              },
-            );
+              });
+
+              /*
+               * The chat is already open, so mark
+               * the message as read immediately.
+               */
+              sendRead(
+                incoming.id,
+              );
+            }
 
             /*
-             * If the conversation wasn't
-             * selected, refresh its preview.
+             * Decrypt AFTER the bubble has been rendered.
              */
-            setConversations(
-              (current) =>
-                current.map(
-                  (
-                    conversation,
-                  ) =>
+            void decryptMessage(
+              incoming,
+            )
+              .then((text) => {
+                setMessages((current) =>
+                  current.map(
+                    (message) =>
+                      message.id ===
+                      incoming.id
+                        ? {
+                            ...message,
+                            text,
+                          }
+                        : message,
+                  ),
+                );
+              })
+              .catch(() => {
+                setMessages((current) =>
+                  current.map(
+                    (message) =>
+                      message.id ===
+                      incoming.id
+                        ? {
+                            ...message,
+                            text:
+                              "Unable to decrypt this message on this device",
+                          }
+                        : message,
+                  ),
+                );
+              });
+
+            /*
+             * Move the conversation to the top and
+             * update its preview.
+             */
+            setConversations((current) => {
+              const existing =
+                current.find(
+                  (conversation) =>
                     conversation.id ===
-                    incoming.conversationId
-                      ? {
-                          ...conversation,
-                          lastMessage:
-                            incoming,
-                        }
-                      : conversation,
-                ),
-            );
+                    incoming.conversationId,
+                );
 
-            /*
-             * If this is a conversation
-             * we don't know about yet,
-             * reload the list.
-             */
+              if (!existing) {
+                return current;
+              }
+
+              return [
+                {
+                  ...existing,
+                  lastMessage:
+                    incoming,
+                },
+                ...current.filter(
+                  (conversation) =>
+                    conversation.id !==
+                    incoming.conversationId,
+                ),
+              ];
+            });
+
             if (
-              !conversations.some(
+              !conversationsRef.current.some(
                 (conversation) =>
                   conversation.id ===
                   incoming.conversationId,
@@ -462,15 +671,16 @@ export default function MessagesPanel() {
                 const response =
                   await apiFetch<{
                     data: Conversation[];
-                  }>(
-                    "/messages",
-                  );
+                  }>("/messages");
+
+                conversationsRef.current =
+                  response.data;
 
                 setConversations(
                   response.data,
                 );
               } catch {
-                // Ignore background refresh errors.
+                // The realtime message itself was received.
               }
             }
 
@@ -479,84 +689,79 @@ export default function MessagesPanel() {
 
           if (
             event.type ===
-            "message.delivered" &&
+              "message.delivered" &&
             event.messageId
           ) {
-            setMessages(
-              (current) =>
+            setMessages((current) => {
+              const updated =
                 current.map(
                   (message) =>
                     message.id ===
                     event.messageId
                       ? {
                           ...message,
-                          status:
+                          status: (
                             message.status ===
                             "read"
                               ? "read"
-                              : "delivered",
+                              : "delivered"
+                          ) as MessageStatus,
                           deliveredAt:
                             event.deliveredAt ??
                             message.deliveredAt ??
                             null,
                         }
                       : message,
-                ),
-            );
+                );
+
+              if (
+                activeConversationRef.current
+              ) {
+                saveCachedMessages(
+                  activeConversationRef.current,
+                  updated,
+                );
+              }
+
+              return updated;
+            });
 
             return;
           }
 
           if (
             event.type ===
-            "message.read" &&
+              "message.read" &&
             event.messageId
           ) {
-            setMessages(
-              (current) =>
+            setMessages((current) => {
+              const updated =
                 current.map(
                   (message) =>
                     message.id ===
                     event.messageId
                       ? {
                           ...message,
-                          status: "read",
+                          status: "read" as MessageStatus,
                           readAt:
                             event.readAt ??
                             message.readAt ??
                             null,
                         }
                       : message,
-                ),
-            );
+                );
 
-            return;
-          }
+              if (
+                activeConversationRef.current
+              ) {
+                saveCachedMessages(
+                  activeConversationRef.current,
+                  updated,
+                );
+              }
 
-          /*
-           * Authentication succeeded.
-           */
-          if (
-            event.type ===
-            "auth.success"
-          ) {
-            setRealtimeConnected(
-              true,
-            );
-
-            return;
-          }
-
-          /*
-           * Connection/auth error.
-           */
-          if (
-            event.type ===
-            "auth.error"
-          ) {
-            setRealtimeConnected(
-              false,
-            );
+              return updated;
+            });
 
             return;
           }
@@ -565,42 +770,30 @@ export default function MessagesPanel() {
             event.type ===
             "message.failed"
           ) {
-            setMessages(
-              (current) =>
-                current.map(
-                  (message) =>
-                    message.clientMessageId ===
-                    event.clientMessageId
-                      ? {
-                          ...message,
-                          status:
-                            "failed",
-                        }
-                      : message,
-                ),
+            setMessages((current) =>
+              current.map(
+                (message) =>
+                  message.clientMessageId ===
+                  event.clientMessageId
+                    ? {
+                        ...message,
+                        status: "failed",
+                      }
+                    : message,
+              ),
             );
 
-            setSending(
-              false,
+            pendingMessagesRef.current.delete(
+              event.clientMessageId ?? "",
             );
 
             return;
-          }
-
-          if (
-            event.type ===
-            "pong"
-          ) {
-            setRealtimeConnected(
-              true,
-            );
           }
         },
       );
 
     return unsubscribe;
   }, []);
-
   /*
    * ------------------------------------------------
    * Load active conversation
@@ -655,50 +848,115 @@ export default function MessagesPanel() {
           return;
         }
 
-        const decrypted =
-          await Promise.all(
-            response.data.map(
-              async (
-                message,
-              ) => {
-                let text =
-                  "Encrypted message";
-
-                try {
-                  text =
-                    await decryptMessage(
-                      message,
-                    );
-                } catch {
-                  text =
-                    "Unable to decrypt message";
-                }
-
-                return {
-                  ...message,
-                  text,
-                  status:
-                    message.senderId ===
-                    currentUser?.id
-                      ? message.readAt
-                        ? "read"
-                        : message.deliveredAt
-                          ? "delivered"
-                          : "sent"
-                      : "delivered",
-                } satisfies UiMessage;
-              },
-            ),
+        /*
+         * Render the server messages immediately.
+         * Decryption happens after the bubbles are
+         * already visible.
+         */
+        const placeholders =
+          response.data.map(
+            (message) =>
+              ({
+                ...message,
+                text:
+                  "Decrypting...",
+                status:
+                  message.senderId ===
+                  currentUser?.id
+                    ? message.readAt
+                      ? "read"
+                      : message.deliveredAt
+                        ? "delivered"
+                        : "sent"
+                    : "delivered",
+              }) satisfies UiMessage,
           );
 
-        setMessages(
-          decrypted,
-        );
+        setMessages((current) => {
+          const pending = current.filter(
+            (message) =>
+              message.optimistic &&
+              message.clientMessageId &&
+              pendingMessagesRef.current.has(
+                message.clientMessageId,
+              ),
+          );
 
-        saveCachedMessages(
-          conversationId as string,
-          decrypted,
-        );
+          const byId =
+            new Map<string, UiMessage>();
+
+          for (const message of placeholders) {
+            byId.set(
+              message.id,
+              message,
+            );
+          }
+
+          for (const message of pending) {
+            if (!byId.has(message.id)) {
+              byId.set(
+                message.id,
+                message,
+              );
+            }
+          }
+
+          const merged =
+            Array.from(
+              byId.values(),
+            ).sort(
+              (a, b) =>
+                new Date(
+                  a.createdAt,
+                ).getTime() -
+                new Date(
+                  b.createdAt,
+                ).getTime(),
+            );
+
+          saveCachedMessages(
+            conversationId as string,
+            merged,
+          );
+
+          return merged;
+        });
+
+        /*
+         * Decrypt in the background and update only
+         * the text. The message bubble is already on
+         * screen.
+         */
+        for (const message of response.data) {
+          void decryptMessage(message)
+            .then((text) => {
+              setMessages((current) =>
+                current.map(
+                  (item) =>
+                    item.id === message.id
+                      ? {
+                          ...item,
+                          text,
+                        }
+                      : item,
+                ),
+              );
+            })
+            .catch(() => {
+              setMessages((current) =>
+                current.map(
+                  (item) =>
+                    item.id === message.id
+                      ? {
+                          ...item,
+                          text:
+                            "Unable to decrypt this message on this device",
+                        }
+                      : item,
+                ),
+              );
+            });
+        }
 
         sendConversationRead(
           conversationId as string,
@@ -809,13 +1067,21 @@ export default function MessagesPanel() {
           true,
       };
 
+    pendingMessagesRef.current.set(
+      clientMessageId,
+      optimistic,
+    );
+
     setMessages(
       (current) => {
-        const updated =
-          [
-            ...current,
-            optimistic,
-          ];
+        const updated = [
+          ...current.filter(
+            (message) =>
+              message.clientMessageId !==
+              clientMessageId,
+          ),
+          optimistic,
+        ];
 
         saveCachedMessages(
           activeConversation.id,
@@ -830,10 +1096,6 @@ export default function MessagesPanel() {
      * Clear input immediately.
      */
     setInput("");
-
-    setSending(
-      true,
-    );
 
     setError(
       null,
@@ -892,10 +1154,6 @@ export default function MessagesPanel() {
           ? error.message
           : "Message could not be sent.",
       );
-    } finally {
-      setSending(
-        false,
-      );
     }
   }
 
@@ -945,9 +1203,139 @@ export default function MessagesPanel() {
    * ------------------------------------------------
    */
   return (
-    <div
-      style={{
-        display: "grid",
+    <>
+      <style>{`
+        .messages-shell {
+          display: grid;
+          grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+          height: calc(100dvh - 80px);
+          min-height: 520px;
+          border: 1px solid rgba(0,0,0,.08);
+          border-radius: 20px;
+          overflow: hidden;
+          background: #fff;
+        }
+
+        .messages-list {
+          min-width: 0;
+          overflow-y: auto;
+          border-right: 1px solid rgba(0,0,0,.08);
+        }
+
+        .messages-chat {
+          min-width: 0;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .messages-scroll {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          padding: clamp(14px, 3vw, 28px);
+          scroll-behavior: smooth;
+        }
+
+        .message-bubble {
+          max-width: min(72%, 680px);
+        }
+
+        .mobile-back {
+          display: none !important;
+        }
+
+        .message-composer {
+          padding: 12px 16px;
+          padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+
+        .message-input {
+          min-width: 0;
+        }
+
+        .message-skeleton {
+          position: relative;
+          overflow: hidden;
+          background: #e9e9e9;
+        }
+
+        .message-skeleton::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,.72),
+            transparent
+          );
+          animation: messageShimmer 1.35s infinite;
+        }
+
+        @keyframes messageShimmer {
+          100% { transform: translateX(100%); }
+        }
+
+        @media (max-width: 900px) {
+          .messages-shell {
+            grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+            border-radius: 14px;
+          }
+
+          .message-bubble {
+            max-width: 82%;
+          }
+        }
+
+        @media (max-width: 700px) {
+          .messages-shell {
+            display: block !important;
+            height: calc(100dvh - 60px);
+            min-height: 0;
+            border: 0;
+            border-radius: 0;
+            position: relative;
+          }
+
+          .messages-list {
+            display: block;
+            height: 100%;
+            border-right: 0;
+          }
+
+          .messages-chat {
+            display: none !important;
+            height: 100%;
+          }
+
+          .messages-shell.chat-open .messages-list {
+            display: none !important;
+          }
+
+          .messages-shell.chat-open .messages-chat {
+            display: flex !important;
+          }
+
+          .message-bubble {
+            max-width: 88%;
+          }
+
+          .mobile-back {
+            display: flex !important;
+          }
+        }
+      `}</style>
+
+      <div
+        className={
+          activeConversationId
+            ? "messages-shell chat-open"
+            : "messages-shell"
+        }
+        style={{
+          display: "grid",
         gridTemplateColumns:
           "300px 1fr",
         height:
@@ -966,6 +1354,7 @@ export default function MessagesPanel() {
           CONVERSATIONS
       ----------------------------------------- */}
       <aside
+        className="messages-list"
         style={{
           borderRight:
             "1px solid rgba(0,0,0,.08)",
@@ -1035,13 +1424,17 @@ export default function MessagesPanel() {
         {loadingConversations ? (
           <div
             style={{
-              padding:
-                30,
-              color:
-                "#888",
+              padding: "10px 0",
             }}
+            aria-label="Loading conversations"
           >
-            Loading conversations...
+            {Array.from({ length: 6 }).map(
+              (_, index) => (
+                <SkeletonRow
+                  key={index}
+                />
+              ),
+            )}
           </div>
         ) : conversations.length ===
           0 ? (
@@ -1194,6 +1587,7 @@ export default function MessagesPanel() {
           CHAT
       ----------------------------------------- */}
       <section
+        className="messages-chat"
         style={{
           display:
             "flex",
@@ -1221,6 +1615,28 @@ export default function MessagesPanel() {
                 gap: 12,
               }}
             >
+              <button
+                className="mobile-back"
+                type="button"
+                onClick={() =>
+                  setActiveConversationId(
+                    null,
+                  )
+                }
+                aria-label="Back to conversations"
+                style={{
+                  border: 0,
+                  background: "transparent",
+                  padding: 4,
+                  display: "none",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <ArrowLeft size={20} />
+              </button>
+
               <div
                 style={{
                   width:
@@ -1298,6 +1714,7 @@ export default function MessagesPanel() {
 
             {/* Messages */}
             <div
+              className="messages-scroll"
               style={{
                 flex:
                   1,
@@ -1315,16 +1732,7 @@ export default function MessagesPanel() {
               {loadingMessages &&
               messages.length ===
                 0 ? (
-                <div
-                  style={{
-                    margin:
-                      "auto",
-                    color:
-                      "#888",
-                  }}
-                >
-                  Loading messages...
-                </div>
+                <MessageSkeleton />
               ) : messages.length ===
                 0 ? (
                 <div
@@ -1374,9 +1782,8 @@ export default function MessagesPanel() {
                         }}
                       >
                         <div
+                          className="message-bubble"
                           style={{
-                            maxWidth:
-                              "70%",
                             padding:
                               "10px 14px",
                             borderRadius:
@@ -1427,58 +1834,13 @@ export default function MessagesPanel() {
                               message.createdAt,
                             )}
 
-                            {own &&
-                              message.status ===
-                                "sending" && (
-                                <>
-                                  <Loader2
-                                    size={
-                                      11
-                                    }
-                                    className="animate-spin"
-                                  />
-
-                                  Sending...
-                                </>
-                              )}
-
-                            {own &&
-                              message.status ===
-                                "sent" && (
-                                <Check
-                                  size={12}
-                                />
-                              )}
-
-                            {own &&
-                              message.status ===
-                                "delivered" && (
-                                <CheckCheck
-                                  size={13}
-                                />
-                              )}
-
-                            {own &&
-                              message.status ===
-                                "read" && (
-                                <CheckCheck
-                                  size={13}
-                                  strokeWidth={3}
-                                />
-                              )}
-
-                            {own &&
-                              message.status ===
-                                "failed" && (
-                                <span
-                                  style={{
-                                    color:
-                                      "#ef4444",
-                                  }}
-                                >
-                                  Failed
-                                </span>
-                              )}
+                            {own && (
+                              <MessageStatus
+                                status={
+                                  message.status
+                                }
+                              />
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1486,6 +1848,14 @@ export default function MessagesPanel() {
                   },
                 )
               )}
+
+              <div
+                ref={messagesEndRef}
+                style={{
+                  height: 1,
+                  flexShrink: 0,
+                }}
+              />
             </div>
 
             {/* Error */}
@@ -1506,6 +1876,7 @@ export default function MessagesPanel() {
 
             {/* Composer */}
             <form
+              className="message-composer"
               onSubmit={
                 handleSubmit
               }
@@ -1520,6 +1891,7 @@ export default function MessagesPanel() {
               }}
             >
               <input
+                className="message-input"
                 value={input}
                 onChange={(
                   event,
@@ -1534,9 +1906,7 @@ export default function MessagesPanel() {
                   handleKeyDown
                 }
                 placeholder="Write a message..."
-                disabled={
-                  sending
-                }
+                disabled={false}
                 style={{
                   flex:
                     1,
@@ -1558,8 +1928,7 @@ export default function MessagesPanel() {
               <button
                 type="submit"
                 disabled={
-                  !input.trim() ||
-                  sending
+                  !input.trim()
                 }
                 style={{
                   width:
@@ -1571,8 +1940,7 @@ export default function MessagesPanel() {
                   borderRadius:
                     14,
                   background:
-                    input.trim() &&
-                    !sending
+                    input.trim()
                       ? "#111"
                       : "#ddd",
                   color:
@@ -1582,22 +1950,14 @@ export default function MessagesPanel() {
                   placeItems:
                     "center",
                   cursor:
-                    input.trim() &&
-                    !sending
+                    input.trim()
                       ? "pointer"
                       : "default",
                 }}
               >
-                {sending ? (
-                  <Loader2
-                    size={18}
-                    className="animate-spin"
-                  />
-                ) : (
-                  <Send
-                    size={18}
-                  />
-                )}
+                <Send
+                  size={18}
+                />
               </button>
             </form>
           </>
@@ -1618,6 +1978,7 @@ export default function MessagesPanel() {
           </div>
         )}
       </section>
-    </div>
+      </div>
+    </>
   );
 }
