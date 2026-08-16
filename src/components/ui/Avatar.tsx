@@ -1,9 +1,9 @@
 import type { User } from "@/lib/mock-data";
 
-export function Avatar({ user, size = "md", online = false }: { user: Pick<User, "initials" | "color" | "name">; size?: "xs" | "sm" | "md" | "lg" | "xl"; online?: boolean }) {
+export function Avatar({ user, size = "md", online = false }: { user: Pick<User, "initials" | "color" | "name"> & { avatarUrl?: string | null }; size?: "xs" | "sm" | "md" | "lg" | "xl"; online?: boolean }) {
   return (
     <span className={`avatar avatar-${size}`} style={{ background: user.color }} aria-label={user.name}>
-      {user.initials}
+      {user.avatarUrl ? <img src={user.avatarUrl} alt="" /> : user.initials}
       {online && <i className="online-dot" />}
     </span>
   );

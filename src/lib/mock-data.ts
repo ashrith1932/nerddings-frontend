@@ -10,6 +10,7 @@ export type User = {
   affiliation?: string;
   location: string;
   followers: string;
+  avatarUrl?: string | null;
   verified?: boolean;
 };
 
