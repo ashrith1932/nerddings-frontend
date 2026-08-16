@@ -33,43 +33,63 @@ export type ApiUser = {
   onboardingCompleted: boolean;
 };
 
-export function getAuthToken() {
-  if (typeof window === "undefined") return null;
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
 
   return window.localStorage.getItem("nerdding.token");
+}
+
+export function saveAuthToken(token: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem("nerdding.token", token);
 }
 
 export function saveAuthSession(session: {
   token: string;
   user: ApiUser;
 }) {
-  window.localStorage.setItem("nerdding.token", session.token);
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(
+    "nerdding.token",
+    session.token,
+  );
+
   window.localStorage.setItem(
     "nerdding.user",
     JSON.stringify(session.user),
   );
 }
 
-export function saveAuthToken(token: string) {
-  if (typeof window === "undefined") return;
-
-  window.localStorage.setItem("nerdding.token", token);
-}
-
 export function clearAuthSession() {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {
+    return;
+  }
 
   window.localStorage.removeItem("nerdding.token");
   window.localStorage.removeItem("nerdding.user");
 }
 
 export function getSavedUser(): ApiUser | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") {
+    return null;
+  }
 
   try {
-    const raw = window.localStorage.getItem("nerdding.user");
+    const raw = window.localStorage.getItem(
+      "nerdding.user",
+    );
 
-    if (!raw) return null;
+    if (!raw) {
+      return null;
+    }
 
     return JSON.parse(raw) as ApiUser;
   } catch {
@@ -80,30 +100,36 @@ export function getSavedUser(): ApiUser | null {
 /**
  * Fetch the currently authenticated Nerddings user.
  *
- * This is the important missing step after OAuth.
+ * The JWT is read from localStorage and automatically
+ * attached by apiFetch().
  */
 export async function fetchCurrentUser(): Promise<ApiUser> {
   const token = getAuthToken();
 
   if (!token) {
-    throw new Error("No authentication token found.");
+    throw new Error(
+      "No Nerddings authentication token found.",
+    );
   }
 
-  const response = await apiFetch<{ data: ApiUser }>("/auth/me");
+  const response = await apiFetch<{
+    data: ApiUser;
+  }>("/auth/me");
 
   if (!response?.data) {
-    throw new Error("Authenticated user was not returned by the API.");
+    throw new Error(
+      "The server did not return the authenticated user.",
+    );
   }
 
   return response.data;
 }
 
 /**
- * Hydrate the local session from the backend.
- *
- * Used after OAuth callback and on application startup.
+ * Verify the existing JWT and refresh the locally
+ * stored user information.
  */
-export async function hydrateAuthSession(): Promise<ApiUser | null> {
+export async function refreshAuthUser(): Promise<ApiUser | null> {
   const token = getAuthToken();
 
   if (!token) {
@@ -123,14 +149,17 @@ export async function hydrateAuthSession(): Promise<ApiUser | null> {
     const status =
       error instanceof Error &&
       "status" in error
-        ? (error as Error & { status?: number }).status
+        ? (error as Error & {
+            status?: number;
+          }).status
         : undefined;
 
     /*
-     * Only clear the session when the backend explicitly
-     * says that authentication is invalid.
+     * Only destroy the local session when the server
+     * explicitly tells us that the token/account is invalid.
      *
-     * Don't destroy the session for temporary network errors.
+     * Don't log the user out because of a temporary
+     * network failure.
      */
     if (status === 401 || status === 404) {
       clearAuthSession();
@@ -152,23 +181,28 @@ export async function apiFetch<T>(
 
   const token = getAuthToken();
 
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `${apiBaseUrl}${path}`,
+    {
+      ...init,
 
-      ...(token
-        ? {
-            Authorization: `Bearer ${token}`,
-          }
-        : {}),
+      headers: {
+        "Content-Type": "application/json",
 
-      ...(init?.headers ?? {}),
+        ...(token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {}),
+
+        ...(init?.headers ?? {}),
+      },
     },
-  });
+  );
 
   if (!response.ok) {
-    let message = `API request failed: ${response.status}`;
+    let message =
+      `API request failed: ${response.status}`;
 
     try {
       const body = (await response.json()) as {
@@ -200,11 +234,15 @@ export async function apiFetch<T>(
 
 export async function uploadMedia(file: File) {
   if (!file.type.match(/^(image|video)\//)) {
-    throw new Error("Only images and videos can be uploaded.");
+    throw new Error(
+      "Only images and videos can be uploaded.",
+    );
   }
 
   if (file.size > 25 * 1024 * 1024) {
-    throw new Error("Images and videos must be under 25 MB.");
+    throw new Error(
+      "Images and videos must be under 25 MB.",
+    );
   }
 
   const signed = await apiFetch<{
