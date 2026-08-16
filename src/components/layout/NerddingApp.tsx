@@ -606,9 +606,19 @@ export function NerddingApp() {
     }).catch(() => undefined);
   }, []);
   const active = pathname === "/" ? "/home" : pathname.startsWith("/profile") ? "/profile/ashrith.builds" : pathname.startsWith("/project") ? "/explore" : pathname.split("/").slice(0, 2).join("/");
-  const isAuth = pathname.startsWith("/login") || pathname.startsWith("/register");
+  const hasSession = Boolean(getAuthToken());
+
+  const isRoot = pathname === "/";
+  const isAuth =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register");
+
   const isOAuthCallback = pathname.startsWith("/auth/callback");
   const isOnboarding = pathname.startsWith("/onboarding");
+  if (isOnboarding) return <OnboardingView />;
+  if (isRoot && !hasSession) {
+    return <LoginView />;
+  }
   const title = useMemo(() => ({ "/home": "Home", "/explore": "Explore", "/charts": "Top charts", "/fundraising": "Fundraising", "/events": "Events", "/nerddings": "Your Nerddings", "/messages": "Messages", "/notifications": "Notifications", "/settings": "Settings", "/search": "Search" }[active] ?? "Nerdding"), [active]);
 
   if (pathname.startsWith("/privacy")) return <LegalPage kind="privacy" />;
