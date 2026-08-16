@@ -1,30 +1,15 @@
-const PREFIX =
-  "nerdding.messages.v1.";
+const PREFIX = "nerdding.messages.v2.";
 
 function key(conversationId: string) {
   return `${PREFIX}${conversationId}`;
 }
 
-export function loadCachedMessages<T>(
-  conversationId: string,
-): T[] {
-  if (
-    typeof window === "undefined"
-  ) {
-    return [];
-  }
+export function loadCachedMessages<T>(conversationId: string): T[] {
+  if (typeof window === "undefined") return [];
 
   try {
-    const raw =
-      window.localStorage.getItem(
-        key(conversationId),
-      );
-
-    if (!raw) {
-      return [];
-    }
-
-    return JSON.parse(raw) as T[];
+    const raw = window.localStorage.getItem(key(conversationId));
+    return raw ? (JSON.parse(raw) as T[]) : [];
   } catch {
     return [];
   }
@@ -34,36 +19,19 @@ export function saveCachedMessages<T>(
   conversationId: string,
   messages: T[],
 ) {
-  if (
-    typeof window === "undefined"
-  ) {
-    return;
-  }
+  if (typeof window === "undefined") return;
 
   try {
-    // Keep the most recent 100 messages.
-    const recent =
-      messages.slice(-100);
-
     window.localStorage.setItem(
       key(conversationId),
-      JSON.stringify(recent),
+      JSON.stringify(messages.slice(-100)),
     );
   } catch {
-    // Cache failure should never break chat.
+    // Cache is only an optimization.
   }
 }
 
-export function clearCachedMessages(
-  conversationId: string,
-) {
-  if (
-    typeof window === "undefined"
-  ) {
-    return;
-  }
-
-  window.localStorage.removeItem(
-    key(conversationId),
-  );
+export function clearCachedMessages(conversationId: string) {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(key(conversationId));
 }
