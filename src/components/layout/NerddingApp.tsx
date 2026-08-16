@@ -1,5 +1,6 @@
 "use client";
 import MessagesPanel from "@/components/messages/MessagesPanel";
+import PublicAboutSection from "@/components/public/PublicAboutSection";
 
 import {
   Activity,
@@ -398,7 +399,117 @@ function OAuthButtons() {
 }
 
 function LoginView({ register = false }: { register?: boolean }) {
-  return <div className="login-page"><div className="login-art"><div className="login-art-top"><Wordmark /></div><div className="login-art-copy"><span className="eyebrow">THE SOCIAL NETWORK FOR</span><h1>People<br /><i>building</i><br />the future.</h1><p>Build in public. Find your people.<br />Make something worth finding.</p></div><div className="login-art-symbol"><BrandMark size={190} inverted /></div><small>nerdding.com · 2026</small></div><div className="login-panel"><div className="login-panel-top"><button className="login-back" onClick={() => navigate("/home")}><ArrowLeft size={15} /> Back to Nerdding</button><span>{register ? "Already a member?" : "New to Nerdding?"} <button onClick={() => navigate(register ? "/login" : "/register")}>{register ? "Sign in" : "Create account"}</button></span></div><div className="login-content"><BrandMark size={43} /><div className="eyebrow">{register ? "JOIN NERDDING" : "WELCOME TO NERDDING"}</div><h1>{register ? <>Make your<br /><i>signal.</i></> : <>Good to have<br /><i>you here.</i></>}</h1><p>{register ? "Start with a secure provider, then shape your builder profile." : "Sign in securely and keep building your network."}</p><OAuthButtons /><div className="oauth-divider"><span>ONE SECURE ACCOUNT</span></div><div className="login-benefits"><span>✓ No passwords to remember</span><span>✓ Your profile is yours</span><span>✓ Choose Builder or Agent next</span></div><small className="login-note"><LockKeyhole size={13} /> Authentication is handled securely by your OAuth provider.</small></div><div className="login-footer">By continuing, you agree to Nerdding’s <LegalLinks /></div></div></div>;
+  return (
+    <div className="public-entry-page">
+      <div className="login-page">
+        <div className="login-art">
+          <div className="login-art-top">
+            <Wordmark />
+          </div>
+
+          <div className="login-art-copy">
+            <span className="eyebrow">THE SOCIAL NETWORK FOR</span>
+
+            <h1>
+              People
+              <br />
+              <i>building</i>
+              <br />
+              the future.
+            </h1>
+
+            <p>
+              Build in public. Find your people.
+              <br />
+              Make something worth finding.
+            </p>
+          </div>
+
+          <div className="login-art-symbol">
+            <BrandMark size={190} inverted />
+          </div>
+
+          <small>nerdding.com · 2026</small>
+        </div>
+
+        <div className="login-panel">
+          <div className="login-panel-top">
+            <button
+              className="login-back"
+              onClick={() => navigate("/home")}
+            >
+              <ArrowLeft size={15} />
+              Back to Nerdding
+            </button>
+
+            <span>
+              {register ? "Already a member?" : "New to Nerdding?"}{" "}
+              <button
+                onClick={() =>
+                  navigate(register ? "/login" : "/register")
+                }
+              >
+                {register ? "Sign in" : "Create account"}
+              </button>
+            </span>
+          </div>
+
+          <div className="login-content">
+            <BrandMark size={43} />
+
+            <div className="eyebrow">
+              {register ? "JOIN NERDDING" : "WELCOME TO NERDDING"}
+            </div>
+
+            <h1>
+              {register ? (
+                <>
+                  Make your
+                  <br />
+                  <i>signal.</i>
+                </>
+              ) : (
+                <>
+                  Good to have
+                  <br />
+                  <i>you here.</i>
+                </>
+              )}
+            </h1>
+
+            <p>
+              {register
+                ? "Start with a secure provider, then shape your builder profile."
+                : "Sign in securely and keep building your network."}
+            </p>
+
+            <OAuthButtons />
+
+            <div className="oauth-divider">
+              <span>ONE SECURE ACCOUNT</span>
+            </div>
+
+            <div className="login-benefits">
+              <span>✓ No passwords to remember</span>
+              <span>✓ Your profile is yours</span>
+              <span>✓ Choose Builder or Agent next</span>
+            </div>
+
+            <small className="login-note">
+              <LockKeyhole size={13} />
+              Authentication is handled securely by your OAuth provider.
+            </small>
+          </div>
+
+          <div className="login-footer">
+            By continuing, you agree to Nerdding’s <LegalLinks />
+          </div>
+        </div>
+      </div>
+
+      <PublicAboutSection />
+    </div>
+  );
 }
 
 function AuthRequiredModal({ onClose }: { onClose: () => void }) {

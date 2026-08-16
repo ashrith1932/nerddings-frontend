@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Nerdding — build in public",
-  description: "The social network for people building the future.",
+  title: "Nerddings — A Network for People Building Things",
+  description:
+    "Nerddings is a social network for students, developers, creators, founders, and organizations to share projects, discover people and ideas, connect with their network, explore events, and find opportunities.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body>{children}</body>
