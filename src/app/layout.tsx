@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "@/components/social/social-enhancer.css";
 import "@/components/social/social-enhancer-overrides.css";
+import "@/components/ui/container-skeleton.css";
 import RouteTransitionSkeleton from "@/components/ui/RouteTransitionSkeleton";
 import PageSkeleton from "@/components/ui/PageSkeleton";
 
