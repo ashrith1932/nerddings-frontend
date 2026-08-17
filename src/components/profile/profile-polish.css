@@ -1,0 +1,145 @@
+/* Profile geometry: the banner is a visual cover; only the avatar overlaps it. */
+.social-enhancer-content .se-profile-cover {
+  height: 188px !important;
+  margin-bottom: 0 !important;
+  border-radius: 15px !important;
+  overflow: hidden;
+}
+.social-enhancer-content .se-profile-head {
+  position: relative !important;
+  z-index: 2 !important;
+  align-items: flex-end !important;
+  gap: 18px !important;
+  padding: 0 24px !important;
+  margin-top: 0 !important;
+  margin-bottom: 14px !important;
+}
+.social-enhancer-content .se-profile-head .se-avatar-lg {
+  transform: translateY(-48px);
+  margin-bottom: -48px;
+  border: 4px solid var(--paper);
+  box-shadow: 0 8px 25px rgba(0,0,0,.12);
+}
+.social-enhancer-content .se-profile-copy {
+  padding-bottom: 10px !important;
+  min-width: 0;
+  color: var(--ink);
+}
+.social-enhancer-content .se-profile-title {
+  color: var(--ink) !important;
+}
+.social-enhancer-content .se-profile-title h1 {
+  color: var(--ink) !important;
+  margin: 0 !important;
+  font-size: 31px !important;
+  letter-spacing: -.05em !important;
+}
+.social-enhancer-content .se-profile-title p,
+.social-enhancer-content .se-profile-copy > p {
+  color: var(--muted) !important;
+}
+.social-enhancer-content .se-stats {
+  margin-top: 0 !important;
+}
+.social-enhancer-content .se-project-tile,
+.social-enhancer-content .se-card,
+.social-enhancer-content .se-post,
+.social-enhancer-content .se-outline {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+/* Own-profile action. */
+.social-enhancer-content .se-own-profile-title {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 9px !important;
+}
+.social-enhancer-content .se-own-profile-title .se-edit-profile-button {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 9px;
+  padding: 8px 12px;
+  font: 600 11px 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+.social-enhancer-content .se-own-profile-title .se-edit-profile-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Global theme parity for the shell pieces that still used light-only values. */
+:root[data-theme="dark"] .sidebar { background: #1b1815 !important; }
+:root[data-theme="dark"] .nav-item { color: var(--muted) !important; }
+:root[data-theme="dark"] .nav-item:hover { background: #28231f !important; color: var(--ink) !important; }
+:root[data-theme="dark"] .nav-item-active { background: var(--ink) !important; color: var(--paper) !important; }
+:root[data-theme="dark"] .topbar { background: rgba(23,20,17,.92) !important; }
+:root[data-theme="dark"] .header-search { background: #211d19 !important; color: var(--muted) !important; }
+:root[data-theme="dark"] .header-search:focus-within { background: var(--card) !important; border-color: var(--line) !important; }
+:root[data-theme="dark"] .search-shortcut,
+:root[data-theme="dark"] kbd { background: #2b2621 !important; border-color: var(--line) !important; color: var(--subtle) !important; }
+:root[data-theme="dark"] .create-button,
+:root[data-theme="dark"] .outline-button { background: var(--card) !important; border-color: var(--line) !important; color: var(--ink) !important; }
+
+/* Edit-profile modal. */
+.se-profile-editor-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100001;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10,9,8,.58);
+  backdrop-filter: blur(8px);
+}
+.se-profile-editor {
+  width: min(520px, 100%);
+  max-height: min(760px, calc(100vh - 40px));
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+.se-profile-editor header,
+.se-profile-editor footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.se-profile-editor header { margin-bottom: 20px; }
+.se-profile-editor header small { color: var(--accent); font: 700 9px 'DM Mono', monospace; letter-spacing: .14em; }
+.se-profile-editor h2 { margin: 4px 0 0; font: 700 25px 'Space Grotesk', sans-serif; letter-spacing: -.04em; }
+.se-profile-editor-close { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); }
+.se-profile-editor-photo { display: grid; justify-items: center; gap: 8px; padding: 18px; margin-bottom: 17px; border: 1px dashed var(--line); border-radius: 14px; }
+.se-profile-editor-avatar { width: 92px; height: 92px; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: color-mix(in srgb, var(--ink) 9%, var(--card)); color: var(--muted); font: 700 28px 'Space Grotesk'; }
+.se-profile-editor-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.se-profile-photo-button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink); font-size: 11px; font-weight: 700; cursor: pointer; }
+.se-profile-photo-button input { display: none; }
+.se-profile-editor-photo > small { color: var(--subtle); font-size: 10px; }
+.se-profile-editor > label { display: grid; gap: 6px; margin-top: 13px; }
+.se-profile-editor > label > span { color: var(--muted); font-size: 11px; font-weight: 700; }
+.se-profile-editor > label input,
+.se-profile-editor > label textarea { width: 100%; box-sizing: border-box; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); color: var(--ink); padding: 10px 11px; outline: none; resize: vertical; }
+.se-profile-editor > label input:focus,
+.se-profile-editor > label textarea:focus { border-color: var(--accent); }
+.se-profile-editor-message { display: flex; align-items: center; gap: 6px; margin-top: 13px; color: var(--green); font-size: 11px; }
+.se-profile-editor footer { margin-top: 20px; justify-content: flex-end; }
+.se-profile-editor-cancel,
+.se-profile-editor-save { padding: 9px 13px; border-radius: 9px; font-size: 11px; font-weight: 700; }
+.se-profile-editor-cancel { border: 1px solid var(--line); color: var(--ink); background: var(--card); }
+.se-profile-editor-save { background: var(--ink); color: var(--paper); }
+.se-profile-editor-save:disabled { opacity: .45; cursor: default; }
+.se-spin { animation: se-profile-spin .8s linear infinite; }
+@keyframes se-profile-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 760px) {
+  .social-enhancer-content .se-profile-cover { height: 150px !important; }
+  .social-enhancer-content .se-profile-head { padding: 0 8px !important; gap: 11px !important; }
+  .social-enhancer-content .se-profile-head .se-avatar-lg { transform: translateY(-34px); margin-bottom: -34px; }
+  .social-enhancer-content .se-profile-title h1 { font-size: 23px !important; }
+  .se-profile-editor-backdrop { padding: 10px; }
+  .se-profile-editor { padding: 18px; border-radius: 14px; }
+}
