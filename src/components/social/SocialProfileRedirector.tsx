@@ -3,6 +3,13 @@
 import { useEffect } from "react";
 import { getAuthToken, getSavedUser, refreshAuthUser } from "@/lib/api";
 
+const LEGACY_OWN_PROFILE_PATHS = new Set([
+  "/profile",
+  "/profile/ashrith.builds",
+  "/profile/undefined",
+  "/profile/null",
+]);
+
 export default function SocialProfileRedirector() {
   useEffect(() => {
     let cancelled = false;
@@ -10,7 +17,21 @@ export default function SocialProfileRedirector() {
     const redirectToViewer = async () => {
       if (!getAuthToken()) return;
 
-      let user = getSavedUser();
+      // Use the cached authenticated user immediately. This prevents the old
+      // hard-coded profile slug from rendering while /auth/me is still loading.
+      const cachedUser = getSavedUser();
+      const cachedUsername = cachedUser?.username?.trim();
+      const path = window.location.pathname;
+
+      if (cachedUsername && LEGACY_OWN_PROFILE_PATHS.has(path)) {
+        const target = `/profile/${encodeURIComponent(cachedUsername)}`;
+        if (path !== target) {
+          window.history.replaceState({}, "", target);
+          window.dispatchEvent(new PopStateEvent("popstate"));
+        }
+      }
+
+      let user = cachedUser;
       try {
         user = await refreshAuthUser();
       } catch {
@@ -19,19 +40,13 @@ export default function SocialProfileRedirector() {
 
       if (cancelled || !user?.username) return;
 
-      const path = window.location.pathname;
-      const isOwnProfileRoute =
-        path === "/profile" ||
-        path === "/profile/ashrith.builds" ||
-        path === "/profile/undefined" ||
-        path === "/profile/null";
+      const currentPath = window.location.pathname;
+      if (!LEGACY_OWN_PROFILE_PATHS.has(currentPath)) return;
 
-      if (isOwnProfileRoute) {
-        const target = `/profile/${encodeURIComponent(user.username)}`;
-        if (window.location.pathname !== target) {
-          window.history.replaceState({}, "", target);
-          window.dispatchEvent(new PopStateEvent("popstate"));
-        }
+      const target = `/profile/${encodeURIComponent(user.username)}`;
+      if (currentPath !== target) {
+        window.history.replaceState({}, "", target);
+        window.dispatchEvent(new PopStateEvent("popstate"));
       }
     };
 
