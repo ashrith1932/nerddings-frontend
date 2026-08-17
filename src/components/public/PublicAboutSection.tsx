@@ -1,9 +1,75 @@
 "use client";
 
-import { ArrowRight,CalendarDays,Check,Compass,Heart,Layers3,MessageCircle,Rocket,Search,Share2,Sparkles,TrendingUp,Users } from "lucide-react";
-import { BrandMark,Wordmark } from "@/components/brand/BrandMark";
-function navigate(path:string){window.history.pushState({},"",path);window.dispatchEvent(new PopStateEvent("popstate"));}
-function scrollToLogin(){window.scrollTo({top:0,behavior:"smooth"});}
-const features=[{icon:Layers3,eyebrow:"BUILD IN PUBLIC",title:"Share what you're building.",text:"Post build updates, ideas, milestones, projects and proof of work. Give people a reason to follow the journey, not just the final result."},{icon:Compass,eyebrow:"DISCOVER",title:"Find people and projects worth knowing.",text:"Explore builders, projects, startups, ideas and communities. Discover work based on what people are actually creating."},{icon:TrendingUp,eyebrow:"TOP CHARTS",title:"See what is gaining momentum.",text:"Explore emerging projects, creators and updates through rankings and activity across the Nerdding network."},{icon:CalendarDays,eyebrow:"EVENTS",title:"Meet the ecosystem.",text:"Discover events and opportunities where builders, students, founders and organizations can connect around ideas and work."},{icon:Rocket,eyebrow:"FUNDRAISING",title:"Discover opportunities and funding.",text:"Explore fundraising activity and opportunities around projects and organizations building new products and ideas."},{icon:MessageCircle,eyebrow:"PRIVATE NETWORK",title:"Talk directly with people.",text:"Use private, end-to-end encrypted messaging to communicate with people in your network."}];
-const audience=[{title:"Students",text:"Show your projects, experiments, ideas and progress while finding people with similar interests."},{title:"Developers & creators",text:"Share the work behind what you build and create a public record of your progress."},{title:"Founders & startups",text:"Build visibility around your product, connect with people and discover opportunities."},{title:"Organizations",text:"Create an identity, share work, discover talent and participate in the builder ecosystem."}];
-export default function PublicAboutSection(){return <section className="public-about" aria-label="About Nerdding"><div className="public-about-grid"><div className="public-about-intro"><span className="eyebrow">WHAT IS NERDDING?</span><h2>A network for people<br/><i>building things.</i></h2><p className="public-about-lead">Nerddings is a social network for students, developers, creators, founders and organizations to share what they are building, discover interesting people and projects, and connect around meaningful work.</p><p>Instead of being centered only around finished products or professional resumes, Nerddings is designed around the process of building — ideas, experiments, milestones, projects, opportunities and the people behind them.</p><button type="button" className="public-about-cta" onClick={scrollToLogin}>Join Nerdding<ArrowRight size={16}/></button></div><div className="public-about-signal"><div className="public-about-signal-mark"><BrandMark size={72} inverted/></div><span className="eyebrow">THE IDEA</span><h3>Make something<br/><i>worth finding.</i></h3><p>Build in public. Find your people. Discover what others are creating. Turn progress into a network.</p><div className="public-signal-points"><span><Check size={14}/>Real projects</span><span><Check size={14}/>Real progress</span><span><Check size={14}/>Real connections</span></div></div></div><div className="public-about-section-heading"><span className="eyebrow">WHAT YOU CAN DO</span><h2>Everything around the<br/><i>building journey.</i></h2><p>Nerddings brings discovery, sharing, networking and opportunities into one place.</p></div><div className="public-feature-grid">{features.map(({icon:Icon,eyebrow,title,text})=><article className="public-feature-card" key={title}><div className="public-feature-icon"><Icon size={19}/></div><span className="eyebrow">{eyebrow}</span><h3>{title}</h3><p>{text}</p></article>)}</div><div className="public-discover-section"><div className="public-discover-copy"><span className="eyebrow">DISCOVER YOUR NETWORK</span><h2>Search beyond<br/><i>your feed.</i></h2><p>Find people, projects, startups, events and ideas through discovery and search. Follow the work that interests you and build your own network around the things you care about.</p><div className="public-discover-list"><span><Search size={15}/>Search people and projects</span><span><Users size={15}/>Follow builders and organizations</span><span><Heart size={15}/>Like and save meaningful work</span><span><Share2 size={15}/>Share and amplify updates</span></div></div><div className="public-discover-card"><div className="public-discover-card-top"><span className="public-discover-dot"/>LIVE NERDDING NETWORK</div><div className="public-discover-row"><div className="public-mini-avatar">A</div><div><strong>Builders</strong><small>People creating something new</small></div><ArrowRight size={15}/></div><div className="public-discover-row"><div className="public-mini-avatar">P</div><div><strong>Projects</strong><small>Ideas becoming real products</small></div><ArrowRight size={15}/></div><div className="public-discover-row"><div className="public-mini-avatar">E</div><div><strong>Events</strong><small>Places to meet the ecosystem</small></div><ArrowRight size={15}/></div><div className="public-discover-row"><div className="public-mini-avatar">F</div><div><strong>Opportunities</strong><small>Fundraising, collaboration and more</small></div><ArrowRight size={15}/></div></div></div><div className="public-audience-section"><div className="public-about-section-heading public-audience-heading"><span className="eyebrow">WHO IS IT FOR?</span><h2>Built for people who<br/><i>make things happen.</i></h2></div><div className="public-audience-grid">{audience.map(({title,text})=><article className="public-audience-card" key={title}><Sparkles size={17}/><h3>{title}</h3><p>{text}</p></article>)}</div></div><div className="public-values"><div><span className="eyebrow">WHY NERDDING?</span><h2>Progress is more<br/>interesting than <i>perfection.</i></h2></div><div className="public-values-copy"><p>A project does not become interesting only when it is finished. The experiments, failures, decisions, prototypes and milestones along the way are valuable too.</p><p>Nerddings is designed to give that work a place to be discovered, discussed and connected to the people who can help move it forward.</p></div></div><div className="public-final-cta"><div><span className="eyebrow">START BUILDING</span><h2>Your next idea<br/>could be <i>worth finding.</i></h2><p>Create your Nerdding profile and start sharing what you're building.</p></div><button type="button" className="public-final-button" onClick={scrollToLogin}>Create your account<ArrowRight size={16}/></button></div><footer className="public-about-footer"><div className="public-footer-brand"><Wordmark compact/></div><span>Build · Prove · Connect · Grow</span><div className="public-footer-links"><button onClick={()=>navigate("/privacy")}>Privacy</button><button onClick={()=>navigate("/terms")}>Terms</button><button onClick={()=>navigate("/community-guidelines")}>Guidelines</button><button onClick={()=>navigate("/cookies")}>Cookies</button></div></footer></section>}
+import {
+  ArrowRight,
+  CalendarDays,
+  Check,
+  Compass,
+  Heart,
+  Layers3,
+  MessageCircle,
+  Rocket,
+  Search,
+  Share2,
+  Sparkles,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+
+import { BrandMark } from "@/components/brand/BrandMark";
+
+function scrollToLogin() {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+}
+
+const features = [
+  { icon: Layers3, eyebrow: "BUILD IN PUBLIC", title: "Share what you're building.", text: "Post build updates, ideas, milestones, projects and proof of work. Give people a reason to follow the journey, not just the final result." },
+  { icon: Compass, eyebrow: "DISCOVER", title: "Find people and projects worth knowing.", text: "Explore builders, projects, startups, ideas and communities. Discover work based on what people are actually creating." },
+  { icon: TrendingUp, eyebrow: "TOP CHARTS", title: "See what is gaining momentum.", text: "Explore emerging projects, creators and updates through rankings and activity across the Nerdding network." },
+  { icon: CalendarDays, eyebrow: "EVENTS", title: "Meet the ecosystem.", text: "Discover events and opportunities where builders, students, founders and organizations can connect around ideas and work." },
+  { icon: Rocket, eyebrow: "FUNDRAISING", title: "Discover opportunities and funding.", text: "Explore fundraising activity and opportunities around projects and organizations building new products and ideas." },
+  { icon: MessageCircle, eyebrow: "PRIVATE NETWORK", title: "Talk directly with people.", text: "Use private, end-to-end encrypted messaging to communicate with people in your network." },
+];
+
+const audience = [
+  { title: "Students", text: "Show your projects, experiments, ideas and progress while finding people with similar interests." },
+  { title: "Developers & creators", text: "Share the work behind what you build and create a public record of your progress." },
+  { title: "Founders & startups", text: "Build visibility around your product, connect with people and discover opportunities." },
+  { title: "Organizations", text: "Create an identity, share work, discover talent and participate in the builder ecosystem." },
+];
+
+export default function PublicAboutSection() {
+  return (
+    <section className="public-about" aria-label="About Nerdding">
+      <div className="public-about-grid">
+        <div className="public-about-intro">
+          <span className="eyebrow">WHAT IS NERDDING?</span>
+          <h2>A network for people<br /><i>building things.</i></h2>
+          <p className="public-about-lead">Nerddings is a social network for students, developers, creators, founders and organizations to share what they are building, discover interesting people and projects, and connect around meaningful work.</p>
+          <p>Instead of being centered only around finished products or professional resumes, Nerddings is designed around the process of building — ideas, experiments, milestones, projects, opportunities and the people behind them.</p>
+          <button type="button" className="public-about-cta" onClick={scrollToLogin}>Join Nerdding <ArrowRight size={16} /></button>
+        </div>
+        <div className="public-about-signal">
+          <div className="public-about-signal-mark"><BrandMark size={72} inverted /></div>
+          <span className="eyebrow">THE IDEA</span>
+          <h3>Make something<br /><i>worth finding.</i></h3>
+          <p>Build in public. Find your people. Discover what others are creating. Turn progress into a network.</p>
+          <div className="public-signal-points"><span><Check size={14} /> Real projects</span><span><Check size={14} /> Real progress</span><span><Check size={14} /> Real connections</span></div>
+        </div>
+      </div>
+      <div className="public-about-section-heading"><span className="eyebrow">WHAT YOU CAN DO</span><h2>Everything around the<br /><i>building journey.</i></h2><p>Nerddings brings discovery, sharing, networking and opportunities into one place.</p></div>
+      <div className="public-feature-grid">{features.map(({ icon: Icon, eyebrow, title, text }) => <article className="public-feature-card" key={title}><div className="public-feature-icon"><Icon size={19} /></div><span className="eyebrow">{eyebrow}</span><h3>{title}</h3><p>{text}</p></article>)}</div>
+      <div className="public-discover-section">
+        <div className="public-discover-copy"><span className="eyebrow">DISCOVER YOUR NETWORK</span><h2>Search beyond<br /><i>your feed.</i></h2><p>Find people, projects, startups, events and ideas through discovery and search. Follow the work that interests you and build your own network around the things you care about.</p><div className="public-discover-list"><span><Search size={15} /> Search people and projects</span><span><Users size={15} /> Follow builders and organizations</span><span><Heart size={15} /> Like and save meaningful work</span><span><Share2 size={15} /> Share and amplify updates</span></div></div>
+        <div className="public-discover-card"><div className="public-discover-card-top"><span className="public-discover-dot" /> LIVE NERDDING NETWORK</div><div className="public-discover-row"><div className="public-mini-avatar">A</div><div><strong>Builders</strong><small>People creating something new</small></div><ArrowRight size={15} /></div><div className="public-discover-row"><div className="public-mini-avatar">P</div><div><strong>Projects</strong><small>Ideas becoming real products</small></div><ArrowRight size={15} /></div><div className="public-discover-row"><div className="public-mini-avatar">E</div><div><strong>Events</strong><small>Places to meet the ecosystem</small></div><ArrowRight size={15} /></div><div className="public-discover-row"><div className="public-mini-avatar">F</div><div><strong>Opportunities</strong><small>Fundraising, collaboration and more</small></div><ArrowRight size={15} /></div></div>
+      </div>
+      <div className="public-audience-section"><div className="public-about-section-heading public-audience-heading"><span className="eyebrow">WHO IS IT FOR?</span><h2>Built for people who<br /><i>make things happen.</i></h2></div><div className="public-audience-grid">{audience.map(({ title, text }) => <article className="public-audience-card" key={title}><Sparkles size={17} /><h3>{title}</h3><p>{text}</p></article>)}</div></div>
+      <div className="public-values"><div><span className="eyebrow">WHY NERDDING?</span><h2>Progress is more<br />interesting than <i>perfection.</i></h2></div><div className="public-values-copy"><p>A project does not become interesting only when it is finished. The experiments, failures, decisions, prototypes and milestones along the way are valuable too.</p><p>Nerddings is designed to give that work a place to be discovered, discussed and connected to the people who can help move it forward.</p></div></div>
+      <div className="public-final-cta"><div><span className="eyebrow">START BUILDING</span><h2>Your next idea<br />could be <i>worth finding.</i></h2><p>Create your Nerdding profile and start sharing what you're building.</p></div><button type="button" className="public-final-button" onClick={scrollToLogin}>Create your account <ArrowRight size={16} /></button></div>
+      <footer className="public-about-footer"><span>© 2026 Nerdding</span><span>Build · Prove · Connect · Grow</span></footer>
+    </section>
+  );
+}
