@@ -65,11 +65,6 @@ body:has(.legal-page) .legal-page:after{content:"n.  nerdding   ·   Build · Pr
 @media(max-width:900px){body[data-nerdding-enhanced-route="/charts"] .live-data-route{padding-right:0}body[data-nerdding-enhanced-route="/charts"] .live-data-route:after{position:static;width:100%;margin-top:14px}body[data-nerdding-enhanced-route^="/settings"] .settings-view, .nerdd-proj-page{width:calc(100vw - 28px)!important}}
 `;
 
-export const metadata: Metadata = {
-  title: "Nerddings — A Network for People Building Things",
-  description: "Nerddings is a social network for students, developers, creators, founders, and organizations to share projects, discover people and ideas, connect with their network, explore events, and find opportunities.",
-};
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="en"><body><style dangerouslySetInnerHTML={{ __html: productPolish }} />{children}</body></html>;
 }
