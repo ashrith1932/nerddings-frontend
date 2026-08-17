@@ -4,10 +4,11 @@ import SocialProfileRedirector from "@/components/social/SocialProfileRedirector
 import LiveNavCounts from "@/components/social/LiveNavCounts";
 import AgentVerificationGate2 from "@/components/agent/AgentVerificationGate2";
 import AgentVerificationRedirect from "@/components/agent/AgentVerificationRedirect";
+import AgentRouteShield from "@/components/agent/AgentRouteShield";
 import AgentLoginLink from "@/components/agent/AgentLoginLink";
 import AgentPendingNotice from "@/components/agent/AgentPendingNotice";
 import ProfileEditorOverlay from "@/components/profile/ProfileEditorOverlay";
 
 export default function CatchAllPage() {
-  return <><NerddingApp /><ReliableSocialEnhancer /><SocialProfileRedirector /><LiveNavCounts /><AgentVerificationGate2 /><AgentVerificationRedirect /><AgentLoginLink /><AgentPendingNotice /><ProfileEditorOverlay /></>;
+  return <><NerddingApp /><AgentRouteShield /><ReliableSocialEnhancer /><SocialProfileRedirector /><LiveNavCounts /><AgentVerificationGate2 /><AgentVerificationRedirect /><AgentLoginLink /><AgentPendingNotice /><ProfileEditorOverlay /></>;
 }
