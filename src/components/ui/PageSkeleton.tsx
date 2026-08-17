@@ -12,16 +12,18 @@ export default function PageSkeleton() {
     const show = () => {
       setVisible(true);
       if (timer) clearTimeout(timer);
-      timer = setTimeout(() => setVisible(false), 320);
+      timer = setTimeout(() => setVisible(false), 420);
     };
 
-    // The first paint gets a short skeleton instead of flashing an incomplete page.
-    timer = setTimeout(() => setVisible(false), 420);
+    // Cover the first paint and every client-side route transition.
+    timer = setTimeout(() => setVisible(false), 500);
     window.addEventListener("popstate", show);
+    window.addEventListener("nerdding:route-loading", show);
 
     return () => {
       if (timer) clearTimeout(timer);
       window.removeEventListener("popstate", show);
+      window.removeEventListener("nerdding:route-loading", show);
     };
   }, []);
 
