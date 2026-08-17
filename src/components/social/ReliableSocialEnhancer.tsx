@@ -39,6 +39,7 @@ export default function ReliableSocialEnhancer() {
     const refreshCounts = async () => {
       const status = document.querySelector<HTMLElement>(".status-chip");
       if (status) status.style.display = "none";
+      for (const badge of Array.from(document.querySelectorAll<HTMLElement>(".nav-item b"))) badge.style.display = "none";
       if (!document.querySelector(".nav-item")) return;
       const token = window.localStorage.getItem("nerdding_auth_token");
       if (!token) return;
@@ -57,8 +58,8 @@ export default function ReliableSocialEnhancer() {
           const count = label === "Messages" ? messageCount : notificationCount;
           const badge = button.querySelector<HTMLElement>("b");
           if (count <= 0) { if (badge) badge.remove(); }
-          else if (badge) badge.textContent = count > 99 ? "99+" : String(count);
-          else { const next = document.createElement("b"); next.textContent = count > 99 ? "99+" : String(count); button.appendChild(next); }
+          else if (badge) { badge.textContent = count > 99 ? "99+" : String(count); badge.style.display = "inline-flex"; }
+          else { const next = document.createElement("b"); next.textContent = count > 99 ? "99+" : String(count); next.style.display = "inline-flex"; button.appendChild(next); }
         }
       } catch {
         // Keep navigation usable if count endpoints are temporarily unavailable.
