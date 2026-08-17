@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import NerddingApp from "@/components/layout/NerddingApp";
+import { NerddingApp } from "@/components/layout/NerddingApp";
 import { ProfileSurface, SettingsSurface } from "@/components/app/NerddingRouteSurfaces";
 import ProjectDetailSurface from "@/components/app/ProjectDetailSurface";
 import PostDetailSurface from "@/components/app/PostDetailSurface";
