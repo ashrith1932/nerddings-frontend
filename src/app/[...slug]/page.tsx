@@ -1,43 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { NerddingApp } from "@/components/layout/NerddingApp";
-import SocialExperience from "@/components/social/SocialExperience";
-import AgentExperience from "@/components/social/AgentExperience";
-import ComposeOnly from "@/components/social/ComposeOnly";
-
-const socialRoutes = ["/home", "/explore", "/charts", "/messages", "/profile", "/project"];
+import NewSocialApp from "@/components/social/NewSocialApp";
 
 export default function CatchAllPage() {
-  const [path, setPath] = useState("");
-  const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    const sync = () => {
-      setPath(window.location.pathname);
-      setSearch(window.location.search);
-    };
-
-    sync();
-    window.addEventListener("popstate", sync);
-    return () => window.removeEventListener("popstate", sync);
-  }, []);
-
-  if (!path) {
-    return <div style={{ minHeight: "100vh", background: "#f7f4ee" }} />;
-  }
-
-  if (path === "/home" && new URLSearchParams(search).get("compose") === "1") {
-    return <ComposeOnly />;
-  }
-
-  if (path.startsWith("/agent/")) {
-    return <AgentExperience slug={decodeURIComponent(path.split("/")[2] || "")} />;
-  }
-
-  if (socialRoutes.some((route) => path === route || path.startsWith(`${route}/`))) {
-    return <SocialExperience />;
-  }
-
-  return <NerddingApp />;
+  return <NewSocialApp />;
 }
