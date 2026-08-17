@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { apiFetch, getAuthToken, getSavedUser, refreshAuthUser } from "@/lib/api";
+import { apiFetch, getAuthToken, refreshAuthUser } from "@/lib/api";
 
 const AGENT_INTENT_KEY = "nerdding.agentLoginIntent";
 const PENDING_STATUSES = new Set(["pending_dns", "pending_review", "rejected"]);
@@ -18,17 +18,23 @@ function markAgentIntent() {
   }
 }
 
+function selectAgentOnOnboarding() {
+  if (window.location.pathname !== "/onboarding") return;
+  if (window.localStorage.getItem(AGENT_INTENT_KEY) !== "1") return;
+  const button = Array.from(document.querySelectorAll("button")).find((item) => item.textContent?.replace(/\s+/g, " ").trim() === "Organization / Agent") as HTMLButtonElement | undefined;
+  button?.click();
+}
+
 export default function AgentVerificationRedirect() {
   useEffect(() => {
     let cancelled = false;
     let callbackTimer: number | undefined;
+    let onboardingTimer: number | undefined;
 
     const route = async () => {
       if (cancelled) return;
       const path = window.location.pathname;
 
-      // Agent-login intent must survive the OAuth round trip. The OAuth
-      // callback itself is handled by NerddingApp, so wait for its token.
       if (path === "/agent/login") {
         markAgentIntent();
         return;
@@ -58,20 +64,16 @@ export default function AgentVerificationRedirect() {
             return;
           }
 
-          // First-time Agent login: let the existing onboarding screen open,
-          // and select Organization / Agent there.
-          if (!user.onboardingCompleted && path === "/auth/callback") {
-            navigate("/onboarding");
-            return;
-          }
-
           if (path === "/auth/callback" || path === "/home") {
             navigate("/onboarding");
             return;
           }
+
+          if (path === "/onboarding") {
+            onboardingTimer = window.setTimeout(selectAgentOnOnboarding, 150);
+          }
         }
 
-        // A pending Agent application is never allowed into the normal app.
         if (PENDING_STATUSES.has(status ?? "") && path === "/home") {
           navigate("/agent/verification");
           return;
@@ -89,8 +91,7 @@ export default function AgentVerificationRedirect() {
     const handleClick = (event: MouseEvent) => {
       if (window.location.pathname !== "/agent/login") return;
       const target = event.target as HTMLElement | null;
-      const button = target?.closest("button");
-      if (button) markAgentIntent();
+      if (target?.closest("button")) markAgentIntent();
     };
 
     const handleRoute = () => {
@@ -103,8 +104,6 @@ export default function AgentVerificationRedirect() {
     markAgentIntent();
 
     if (window.location.pathname === "/auth/callback") {
-      // NerddingApp saves the OAuth token during callback processing. Polling
-      // briefly avoids trusting stale localStorage account information.
       let attempts = 0;
       callbackTimer = window.setInterval(() => {
         attempts += 1;
@@ -122,6 +121,7 @@ export default function AgentVerificationRedirect() {
       document.removeEventListener("click", handleClick, true);
       window.removeEventListener("popstate", handleRoute);
       if (callbackTimer) window.clearInterval(callbackTimer);
+      if (onboardingTimer) window.clearTimeout(onboardingTimer);
     };
   }, []);
 
