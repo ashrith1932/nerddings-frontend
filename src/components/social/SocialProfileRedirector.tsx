@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { getAuthToken, getSavedUser, refreshAuthUser } from "@/lib/api";
 
 const LEGACY_OWN_PROFILE_PATHS = new Set([
@@ -11,43 +11,42 @@ const LEGACY_OWN_PROFILE_PATHS = new Set([
 ]);
 
 export default function SocialProfileRedirector() {
-  useEffect(() => {
-    let cancelled = false;
+  const redirectToViewer = useCallback(async () => {
+    if (!getAuthToken()) return;
 
-    const redirectToViewer = async () => {
-      if (!getAuthToken()) return;
+    const path = window.location.pathname;
+    if (!LEGACY_OWN_PROFILE_PATHS.has(path)) return;
 
-      // Use the cached authenticated user immediately. This prevents the old
-      // hard-coded profile slug from rendering while /auth/me is still loading.
-      const cachedUser = getSavedUser();
-      const cachedUsername = cachedUser?.username?.trim();
-      const path = window.location.pathname;
+    const cachedUser = getSavedUser();
+    const cachedUsername = cachedUser?.username?.trim();
 
-      if (cachedUsername && LEGACY_OWN_PROFILE_PATHS.has(path)) {
-        const target = `/profile/${encodeURIComponent(cachedUsername)}`;
-        if (path !== target) {
-          window.history.replaceState({}, "", target);
-          window.dispatchEvent(new PopStateEvent("popstate"));
-        }
-      }
-
-      let user = cachedUser;
-      try {
-        user = await refreshAuthUser();
-      } catch {
-        // Keep the cached session for transient API failures.
-      }
-
-      if (cancelled || !user?.username) return;
-
-      const currentPath = window.location.pathname;
-      if (!LEGACY_OWN_PROFILE_PATHS.has(currentPath)) return;
-
-      const target = `/profile/${encodeURIComponent(user.username)}`;
-      if (currentPath !== target) {
+    if (cachedUsername) {
+      const target = `/profile/${encodeURIComponent(cachedUsername)}`;
+      if (path !== target) {
         window.history.replaceState({}, "", target);
         window.dispatchEvent(new PopStateEvent("popstate"));
       }
+      return;
+    }
+
+    try {
+      const user = await refreshAuthUser();
+      if (!user?.username) return;
+      const target = `/profile/${encodeURIComponent(user.username)}`;
+      if (window.location.pathname !== target) {
+        window.history.replaceState({}, "", target);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
+    } catch {
+      // Leave the route alone if authentication cannot be refreshed.
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const handleRoute = () => {
+      if (!cancelled) void redirectToViewer();
     };
 
     if (window.location.pathname === "/" && getAuthToken()) {
@@ -55,11 +54,14 @@ export default function SocialProfileRedirector() {
       window.dispatchEvent(new PopStateEvent("popstate"));
     }
 
-    void redirectToViewer();
+    handleRoute();
+    window.addEventListener("popstate", handleRoute);
+
     return () => {
       cancelled = true;
+      window.removeEventListener("popstate", handleRoute);
     };
-  }, []);
+  }, [redirectToViewer]);
 
   return null;
 }
