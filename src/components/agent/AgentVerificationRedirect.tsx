@@ -17,10 +17,9 @@ function markAgentIntent() {
 }
 
 function selectAgentOnOnboarding() {
-  if (window.location.pathname !== "/onboarding") return;
-  if (window.localStorage.getItem(AGENT_INTENT_KEY) !== "1") return;
   const button = Array.from(document.querySelectorAll("button")).find((item) => item.textContent?.replace(/\s+/g, " ").trim() === "Organization / Agent") as HTMLButtonElement | undefined;
-  button?.click();
+  if (button) button.click();
+  return Boolean(button);
 }
 
 export default function AgentVerificationRedirect() {
@@ -71,7 +70,13 @@ export default function AgentVerificationRedirect() {
           }
 
           if (path === "/onboarding") {
-            onboardingTimer = window.setTimeout(selectAgentOnOnboarding, 150);
+            let attempts = 0;
+            onboardingTimer = window.setInterval(() => {
+              attempts += 1;
+              if (selectAgentOnOnboarding() || attempts >= 20) {
+                if (onboardingTimer) window.clearInterval(onboardingTimer);
+              }
+            }, 150);
           }
         }
 
@@ -118,7 +123,7 @@ export default function AgentVerificationRedirect() {
       document.removeEventListener("click", handleClick, true);
       window.removeEventListener("popstate", handleRoute);
       if (callbackTimer) window.clearInterval(callbackTimer);
-      if (onboardingTimer) window.clearTimeout(onboardingTimer);
+      if (onboardingTimer) window.clearInterval(onboardingTimer);
     };
   }, []);
 
