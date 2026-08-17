@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Camera, Check, ImagePlus, Loader2, X } from "lucide-react";
+import { Camera, Check, Loader2, X } from "lucide-react";
 import { apiFetch, getSavedUser, refreshAuthUser, uploadMedia } from "@/lib/api";
 import "./profile-polish.css";
 
@@ -13,8 +13,6 @@ export default function ProfileEditorOverlay() {
   const [message, setMessage] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
-  const [location, setLocation] = useState("");
 
   const isOwnProfile = () => {
     const saved = getSavedUser();
@@ -77,9 +75,9 @@ export default function ProfileEditorOverlay() {
     setBusy(true);
     setMessage("");
     try {
-      const response = await apiFetch<{ data: { avatarUrl?: string | null; name?: string; bio?: string | null; location?: string | null } }>("/settings/profile", {
+      const response = await apiFetch<{ data: { avatarUrl?: string | null; name?: string } }>("/settings/profile", {
         method: "PATCH",
-        body: JSON.stringify({ name: name.trim(), bio: bio.trim(), location: location.trim(), avatarUrl }),
+        body: JSON.stringify({ name: name.trim(), avatarUrl }),
       });
       const fresh = await refreshAuthUser();
       setAvatarUrl(response.data.avatarUrl ?? fresh?.avatarUrl ?? null);
@@ -117,8 +115,6 @@ export default function ProfileEditorOverlay() {
           <small>JPG, PNG or WebP · up to 25 MB</small>
         </div>
         <label><span>Name</span><input value={name} onChange={(event) => setName(event.target.value)} maxLength={160} /></label>
-        <label><span>Bio</span><textarea value={bio} onChange={(event) => setBio(event.target.value)} maxLength={500} rows={3} placeholder="What are you building or learning?" /></label>
-        <label><span>Location</span><input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={160} placeholder="City, country" /></label>
         {message && <div className="se-profile-editor-message"><Check size={14} /> {message}</div>}
         <footer><button className="se-profile-editor-cancel" onClick={() => !busy && setOpen(false)}>Cancel</button><button className="se-profile-editor-save" disabled={busy || !name.trim()} onClick={() => void save()}>{busy ? <><Loader2 className="se-spin" size={15} /> Saving…</> : <>Save changes</>}</button></footer>
       </section>
