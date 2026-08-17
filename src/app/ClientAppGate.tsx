@@ -7,6 +7,7 @@ import { ProfileSurface, SettingsSurface } from "@/components/app/NerddingRouteS
 import ProjectDetailSurface from "@/components/app/ProjectDetailSurface";
 import PostDetailSurface from "@/components/app/PostDetailSurface";
 import ProjectSurface from "@/components/app/ProjectSurface";
+import { LiveHomeRoute, LiveMessagesRoute, LiveNotificationsRoute, LiveChartsRoute, LiveFundraisingRoute, LiveSearchRoute } from "@/components/app/LiveDataRoutes";
 import { apiFetch } from "@/lib/api";
 import "@/components/app/nerdding-route-surfaces.css";
 import AgentVerificationGate2 from "@/components/agent/AgentVerificationGate2";
@@ -39,10 +40,7 @@ function AppSkeleton() {
   return (
     <div className="client-app-skeleton" aria-hidden="true">
       <style>{`\n        .client-app-skeleton{min-height:100dvh;display:grid;grid-template-columns:244px minmax(0,1fr);background:#f8f6f2}\n        .client-app-skeleton-sidebar{padding:24px 14px;border-right:1px solid #e4ded5;background:#fbfaf7}\n        .client-app-skeleton-logo,.client-app-skeleton-nav,.client-app-skeleton-topbar,.client-app-skeleton-card{background:#e8e3dc;position:relative;overflow:hidden}\n        .client-app-skeleton-logo{height:30px;width:125px;border-radius:8px;margin:3px 10px 28px}\n        .client-app-skeleton-nav{height:40px;border-radius:10px;margin:7px 4px}\n        .client-app-skeleton-topbar{height:66px;border-bottom:1px solid #e4ded5;background:#fbfaf7}\n        .client-app-skeleton-content{width:min(1150px,calc(100% - 48px));margin:28px auto;display:grid;gap:14px}\n        .client-app-skeleton-card{height:150px;border-radius:15px}.client-app-skeleton-card.large{height:250px}\n        .client-app-skeleton-logo:after,.client-app-skeleton-nav:after,.client-app-skeleton-topbar:after,.client-app-skeleton-card:after{content:\"\";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:client-app-shimmer 1.15s infinite}\n        @keyframes client-app-shimmer{to{transform:translateX(100%)}}\n        @media(max-width:760px){.client-app-skeleton{display:block}.client-app-skeleton-sidebar{display:none}.client-app-skeleton-content{width:calc(100% - 20px);margin:18px auto}}\n      `}</style>
-      <aside className="client-app-skeleton-sidebar">
-        <div className="client-app-skeleton-logo" />
-        {Array.from({ length: 9 }, (_, i) => <div className="client-app-skeleton-nav" key={i} />)}
-      </aside>
+      <aside className="client-app-skeleton-sidebar"><div className="client-app-skeleton-logo" />{Array.from({ length: 9 }, (_, i) => <div className="client-app-skeleton-nav" key={i} />)}</aside>
       <main><div className="client-app-skeleton-topbar" /><div className="client-app-skeleton-content"><div className="client-app-skeleton-card large" /><div className="client-app-skeleton-card" /><div className="client-app-skeleton-card" /></div></main>
     </div>
   );
@@ -56,35 +54,9 @@ export default function ClientAppGate() {
   useEffect(() => {
     repairMessageCache();
     const onPop = () => setPath(window.location.pathname);
-    const onComment = async (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      const button = target?.closest(".social-actions button") as HTMLButtonElement | null;
-      if (!button) return;
-      const parent = button.parentElement;
-      if (!parent || parent.querySelectorAll("button")[1] !== button) return;
-      const card = button.closest(".social-post-card") as HTMLElement | null;
-      const copy = card?.querySelector(".social-post-copy")?.textContent?.trim();
-      if (!copy) return;
-      event.preventDefault();
-      event.stopPropagation();
-      try {
-        const json = await apiFetch<{ data: Array<{ id: string; text?: string }> }>("/social/feed?mode=for-you");
-        const match = (json.data ?? []).find((post) => post.text?.trim() === copy);
-        if (match?.id) {
-          window.history.pushState({}, "", `/post/${match.id}`);
-          window.dispatchEvent(new PopStateEvent("popstate"));
-        }
-      } catch {
-        // The post surface will show its own error state if the backend is unavailable.
-      }
-    };
     window.addEventListener("popstate", onPop);
-    document.addEventListener("click", onComment, true);
     setReady(true);
-    return () => {
-      window.removeEventListener("popstate", onPop);
-      document.removeEventListener("click", onComment, true);
-    };
+    return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   useEffect(() => {
@@ -95,6 +67,25 @@ export default function ClientAppGate() {
     return () => { delete document.body.dataset.nerddingEnhancedRoute; };
   }, [ready, path]);
 
+  useEffect(() => {
+    if (!ready) return;
+    const refresh = async () => {
+      const status = document.querySelector<HTMLElement>(".status-chip");
+      if (status) status.style.display = "none";
+      document.querySelectorAll<HTMLElement>(".nav-item b").forEach((badge) => { badge.style.display = "none"; });
+      const token = window.localStorage.getItem("nerdding.token");
+      if (!token) return;
+      try {
+        const [notifications, messages] = await Promise.allSettled([apiFetch<any>("/notifications"), apiFetch<any>("/social/messages/unread-count")]);
+        const counts = { Messages: messages.status === "fulfilled" ? Number(messages.value?.data?.unreadCount ?? 0) + Number(messages.value?.data?.pendingRequests ?? 0) : 0, Notifications: notifications.status === "fulfilled" ? Number(notifications.value?.unreadCount ?? 0) : 0 };
+        document.querySelectorAll<HTMLElement>(".nav-item").forEach((item) => { const label = item.querySelector("span")?.textContent?.trim() as keyof typeof counts | undefined; if (!label || !(label in counts)) return; const count = counts[label]; let badge = item.querySelector<HTMLElement>("b"); if (count <= 0) { badge?.remove(); return; } if (!badge) { badge = document.createElement("b"); item.appendChild(badge); } badge.textContent = count > 99 ? "99+" : String(count); badge.style.display = "inline-flex"; });
+      } catch {}
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 15000);
+    return () => window.clearInterval(timer);
+  }, [ready, path]);
+
   if (!ready) return <AppSkeleton />;
 
   const profile = path.startsWith("/profile/");
@@ -102,18 +93,31 @@ export default function ClientAppGate() {
   const project = path.startsWith("/project/") && path !== "/project/new";
   const post = path.startsWith("/post/");
   const newProject = path === "/project/new";
+  const home = path === "/home" || path === "/";
+  const messages = path.startsWith("/messages");
+  const notifications = path.startsWith("/notifications");
+  const charts = path.startsWith("/charts");
+  const fundraising = path.startsWith("/fundraising");
+  const search = path.startsWith("/search");
+  const searchParams = typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("q") ?? "";
 
   return (
     <>
-      <style>{`\n        .nerdding-enhanced-route{width:100%}\n        .nerdding-enhanced-route > .nerdd-route-surface{position:relative;inset:auto;z-index:auto;width:100%;min-height:100%;overflow:visible;padding:0 0 72px}\n        .nerdding-enhanced-route .view{max-width:none}\n        body[data-nerdding-enhanced-route^="/profile/"] .page-content > .profile-view,\n        body[data-nerdding-enhanced-route^="/settings"] .page-content > .settings-view,\n        body[data-nerdding-enhanced-route^="/project/"] .page-content > .project-view{display:none!important}\n        .create-popover .create-option:nth-of-type(n+3){display:none}\n      `}</style>
+      <style>{`\n        .nerdding-enhanced-route{width:100%}\n        .nerdding-enhanced-route > .nerdd-route-surface{position:relative;inset:auto;z-index:auto;width:100%;min-height:100%;overflow:visible;padding:0 0 72px}\n        .nerdding-enhanced-route .view{max-width:none}\n        body[data-nerdding-enhanced-route^="/profile/"] .page-content > .profile-view,\n        body[data-nerdding-enhanced-route^="/settings"] .page-content > .settings-view,\n        body[data-nerdding-enhanced-route^="/project/"] .page-content > .project-view,\n        body[data-nerdding-enhanced-route="/messages"] .page-content > .messages-view,\n        body[data-nerdding-enhanced-route="/notifications"] .page-content > .notifications-view,\n        body[data-nerdding-enhanced-route="/charts"] .page-content > .home-view,\n        body[data-nerdding-enhanced-route="/fundraising"] .page-content > .home-view,\n        body[data-nerdding-enhanced-route^="/search"] .page-content > .view{display:none!important}\n        body[data-nerdding-enhanced-route="/home"] .page-content > .home-view,\n        body[data-nerdding-enhanced-route="/"] .page-content > .home-view{display:none!important}\n        .status-chip{display:none!important}\n        .create-popover .create-option:nth-of-type(n+3){display:none}\n      `}</style>
       <NerddingApp />
       {portalTarget && createPortal(
         <div className="nerdding-enhanced-route">
+          {home && <LiveHomeRoute />}
           {profile && <ProfileSurface username={decodeURIComponent(path.split("/")[2] || "")} />}
           {settings && <SettingsSurface />}
           {project && <ProjectDetailSurface slug={decodeURIComponent(path.split("/")[2] || "")} />}
           {post && <PostDetailSurface postId={decodeURIComponent(path.split("/")[2] || "")} />}
           {newProject && <ProjectSurface />}
+          {messages && <LiveMessagesRoute />}
+          {notifications && <LiveNotificationsRoute />}
+          {charts && <LiveChartsRoute />}
+          {fundraising && <LiveFundraisingRoute />}
+          {search && <LiveSearchRoute query={searchParams} />}
         </div>,
         portalTarget,
       )}
