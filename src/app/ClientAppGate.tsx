@@ -37,22 +37,36 @@ function repairMessageCache() {
 
 function AppSkeleton() {
   return (
-    <div className="client-app-skeleton" aria-hidden="true">
-      <aside className="client-app-skeleton-sidebar">
-        <div className="client-app-skeleton-logo" />
-        {Array.from({ length: 8 }, (_, index) => (
-          <div className="client-app-skeleton-nav" key={index} />
-        ))}
-      </aside>
-      <main className="client-app-skeleton-main">
-        <div className="client-app-skeleton-topbar" />
-        <div className="client-app-skeleton-content">
-          <div className="client-app-skeleton-card large" />
-          <div className="client-app-skeleton-card" />
-          <div className="client-app-skeleton-card" />
-        </div>
-      </main>
-    </div>
+    <>
+      <style>{`
+        .client-app-skeleton{min-height:100dvh;display:grid;grid-template-columns:244px minmax(0,1fr);background:#f8f6f2}
+        .client-app-skeleton-sidebar{padding:24px 14px;border-right:1px solid #e4ded5;background:#fbfaf7}
+        .client-app-skeleton-logo{height:30px;width:125px;border-radius:8px;margin:3px 10px 28px;background:#e5e0d8;overflow:hidden;position:relative}
+        .client-app-skeleton-nav,.client-app-skeleton-topbar,.client-app-skeleton-card{background:#e8e3dc;position:relative;overflow:hidden}
+        .client-app-skeleton-nav{height:40px;border-radius:10px;margin:7px 4px}
+        .client-app-skeleton-topbar{height:66px;border-bottom:1px solid #e4ded5;background:#fbfaf7}
+        .client-app-skeleton-content{width:min(1150px,calc(100% - 48px));margin:28px auto;display:grid;gap:14px}
+        .client-app-skeleton-card{height:150px;border-radius:15px}
+        .client-app-skeleton-card.large{height:250px}
+        .client-app-skeleton-logo:after,.client-app-skeleton-nav:after,.client-app-skeleton-topbar:after,.client-app-skeleton-card:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:client-app-shimmer 1.15s infinite}
+        @keyframes client-app-shimmer{to{transform:translateX(100%)}}
+        @media(max-width:760px){.client-app-skeleton{display:block}.client-app-skeleton-sidebar{display:none}.client-app-skeleton-content{width:calc(100% - 20px);margin:18px auto}}
+      `}</style>
+      <div className="client-app-skeleton" aria-hidden="true">
+        <aside className="client-app-skeleton-sidebar">
+          <div className="client-app-skeleton-logo" />
+          {Array.from({ length: 8 }, (_, index) => <div className="client-app-skeleton-nav" key={index} />)}
+        </aside>
+        <main className="client-app-skeleton-main">
+          <div className="client-app-skeleton-topbar" />
+          <div className="client-app-skeleton-content">
+            <div className="client-app-skeleton-card large" />
+            <div className="client-app-skeleton-card" />
+            <div className="client-app-skeleton-card" />
+          </div>
+        </main>
+      </div>
+    </>
   );
 }
 
