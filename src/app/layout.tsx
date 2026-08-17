@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@/components/social/social-enhancer.css";
 
 export const metadata: Metadata = {
   title: "Nerddings — A Network for People Building Things",
