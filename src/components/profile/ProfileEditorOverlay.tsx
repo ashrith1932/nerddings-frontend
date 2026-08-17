@@ -83,7 +83,7 @@ export default function ProfileEditorOverlay() {
       setAvatarUrl(response.data.avatarUrl ?? fresh?.avatarUrl ?? null);
       setMessage("Profile updated.");
       window.dispatchEvent(new CustomEvent("nerdding:auth-updated"));
-      window.setTimeout(() => setOpen(false), 450);
+      window.setTimeout(() => window.location.reload(), 450);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to update your profile.");
     } finally {
