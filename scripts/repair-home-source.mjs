@@ -25,13 +25,14 @@ if (repairedHome !== source) {
 
 // ProjectDetailSurface has a loading-state fragment. Some generated versions
 // omitted the fragment terminator and left a bare `</div>;`, which makes the
-// TSX parser report an error at the following `className`. Repair only that
-// exact boundary so the build remains deterministic without touching valid JSX.
+// TSX parser report an error at the following `className`. Repair the exact
+// closing sequence so all three structural divs remain intact and the React
+// fragment is closed correctly.
 const projectFile = path.join(root, "src/components/app/ProjectDetailSurface.tsx");
 let projectSource = fs.readFileSync(projectFile, "utf8");
 const repairedProject = projectSource.replace(
-  /(<div className="project-skeleton-small"\/>){4}(<\/div>);\n if\(!project\)return/,
-  "$1$1$1$1</div></>;\n if(!project)return",
+  /(<div className="project-skeleton-small"\/>){4}<\/div><\/div><\/div>;\n if\(!project\)return/,
+  "$1$1$1$1</div></div></div></>;\n if(!project)return",
 );
 
 if (repairedProject !== projectSource) {
