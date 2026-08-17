@@ -42,6 +42,10 @@ body[data-nerdding-route="home"] .home-composer-backdrop{overflow:hidden!importa
 body.nerdd-overlay-open{overflow:hidden}
 body[data-nerdding-route="home"] .home-live-root{z-index:1!important}
 body[data-nerdding-route="explore"] .event-modal-card{max-height:calc(100vh - 40px);overflow:auto;overscroll-behavior:contain}
+body[data-nerdding-route="explore"] .event-modal-card .post-detail-view{max-width:none!important;padding:0!important}
+body[data-nerdding-route="explore"] .event-modal-card .back-button{display:none!important}
+body[data-nerdding-route="explore"] .event-modal-card .post-detail-card{border:0!important;box-shadow:none!important;border-radius:0!important;padding:8px 0 10px!important}
+body[data-nerdding-route="explore"] .event-modal-card .post-detail-comments{border-radius:0!important;box-shadow:none!important;border-left:0!important;border-right:0!important}
 body[data-nerdding-route="explore"] .discovery-post{cursor:pointer}
 
 /* Reply threads: make nested replies read like a conversation tree. */
