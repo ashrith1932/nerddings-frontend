@@ -13,9 +13,7 @@ function navigate(path: string, replace = true) {
 }
 
 function markAgentIntent() {
-  if (window.location.pathname === "/agent/login") {
-    window.localStorage.setItem(AGENT_INTENT_KEY, "1");
-  }
+  if (window.location.pathname === "/agent/login") window.localStorage.setItem(AGENT_INTENT_KEY, "1");
 }
 
 function selectAgentOnOnboarding() {
@@ -34,22 +32,25 @@ export default function AgentVerificationRedirect() {
     const route = async () => {
       if (cancelled) return;
       const path = window.location.pathname;
-
       if (path === "/agent/login") {
         markAgentIntent();
         return;
       }
 
       const intent = window.localStorage.getItem(AGENT_INTENT_KEY) === "1";
-      const token = getAuthToken();
-      if (!token) return;
+      if (!getAuthToken()) return;
 
       try {
         const user = await refreshAuthUser();
         if (!user || cancelled) return;
 
-        const verification = await apiFetch<{ data: { status?: string } | null }>("/agent-verification/me");
-        const status = verification.data?.status;
+        let status: string | undefined;
+        try {
+          const verification = await apiFetch<{ data: { status?: string } | null }>("/agent-verification/me");
+          status = verification.data?.status;
+        } catch {
+          // A first-time Agent login has no verification request yet.
+        }
 
         if (intent) {
           if (PENDING_STATUSES.has(status ?? "")) {
@@ -84,7 +85,7 @@ export default function AgentVerificationRedirect() {
           navigate("/home");
         }
       } catch {
-        // Keep the current route if the verification service is temporarily unavailable.
+        // Keep the current route if the auth service is temporarily unavailable.
       }
     };
 
@@ -93,11 +94,7 @@ export default function AgentVerificationRedirect() {
       const target = event.target as HTMLElement | null;
       if (target?.closest("button")) markAgentIntent();
     };
-
-    const handleRoute = () => {
-      markAgentIntent();
-      void route();
-    };
+    const handleRoute = () => { markAgentIntent(); void route(); };
 
     document.addEventListener("click", handleClick, true);
     window.addEventListener("popstate", handleRoute);
