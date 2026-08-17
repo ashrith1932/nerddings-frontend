@@ -6,12 +6,41 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Repair JSX syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("src/components/layout/NerddingApp.tsx")
+          text = path.read_text()
+          old = 'Terms of Service</button></div></div>\n  ) : ('
+          new = 'Terms of Service</button></div></div></div>\n  ) : ('
+          if old in text:
+              path.write_text(text.replace(old, new, 1))
+          else:
+              print("JSX repair not needed")
+          PY
+      - name: Commit JSX repair
+        run: |
+          if git diff --quiet; then
+            echo "No repair to commit"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add src/components/layout/NerddingApp.tsx
+            git commit -m "fix: close guest welcome JSX container [skip ci]"
+            git push
+          fi
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
