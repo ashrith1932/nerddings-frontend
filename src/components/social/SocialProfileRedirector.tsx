@@ -1,26 +1,50 @@
 "use client";
 
 import { useEffect } from "react";
-import { getAuthToken, getSavedUser } from "@/lib/api";
+import { getAuthToken, getSavedUser, refreshAuthUser } from "@/lib/api";
 
 export default function SocialProfileRedirector() {
   useEffect(() => {
-    const sync = () => {
-      const user = getSavedUser();
-      if (getAuthToken() && window.location.pathname === "/") {
-        window.history.replaceState({}, "", "/home");
-        window.dispatchEvent(new PopStateEvent("popstate"));
-        return;
+    let cancelled = false;
+
+    const redirectToViewer = async () => {
+      if (!getAuthToken()) return;
+
+      let user = getSavedUser();
+      try {
+        user = await refreshAuthUser();
+      } catch {
+        // Keep the cached session for transient API failures.
       }
-      if (!user?.username) return;
-      if (window.location.pathname === "/profile/ashrith.builds" && user.username !== "ashrith.builds") {
-        window.history.replaceState({}, "", `/profile/${user.username}`);
-        window.dispatchEvent(new PopStateEvent("popstate"));
+
+      if (cancelled || !user?.username) return;
+
+      const path = window.location.pathname;
+      const isOwnProfileRoute =
+        path === "/profile" ||
+        path === "/profile/ashrith.builds" ||
+        path === "/profile/undefined" ||
+        path === "/profile/null";
+
+      if (isOwnProfileRoute) {
+        const target = `/profile/${encodeURIComponent(user.username)}`;
+        if (window.location.pathname !== target) {
+          window.history.replaceState({}, "", target);
+          window.dispatchEvent(new PopStateEvent("popstate"));
+        }
       }
     };
-    sync();
-    window.addEventListener("popstate", sync);
-    return () => window.removeEventListener("popstate", sync);
+
+    if (window.location.pathname === "/" && getAuthToken()) {
+      window.history.replaceState({}, "", "/home");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+
+    void redirectToViewer();
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
   return null;
 }
