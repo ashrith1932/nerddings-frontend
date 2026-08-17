@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "@/components/social/social-enhancer.css";
+import "@/components/social/social-enhancer-overrides.css";
 
 export const metadata: Metadata = {
   title: "Nerddings — A Network for People Building Things",
