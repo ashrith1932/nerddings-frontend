@@ -32,6 +32,6 @@ export default function ReliableSocialEnhancer() {
     };
   }, []);
 
-  if (!host) return null;
+  if (!host || window.location.pathname === "/agent/login" || window.location.pathname.startsWith("/agent/verification")) return null;
   return <SocialEnhancer key={version} />;
 }
