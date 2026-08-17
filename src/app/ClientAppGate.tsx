@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { NerddingApp } from "@/components/layout/NerddingApp";
 import { ProfileSurface, SettingsSurface } from "@/components/app/NerddingRouteSurfaces";
+import "@/components/app/nerdding-route-surfaces.css";
 import AgentVerificationGate2 from "@/components/agent/AgentVerificationGate2";
 import AgentVerificationRedirect from "@/components/agent/AgentVerificationRedirect";
 import AgentRouteShield from "@/components/agent/AgentRouteShield";
