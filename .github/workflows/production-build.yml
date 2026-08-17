@@ -23,10 +23,11 @@ jobs:
           from pathlib import Path
           path = Path("src/components/layout/NerddingApp.tsx")
           text = path.read_text()
-          old = 'Terms of Service</button></div></div>\n  ) : ('
-          new = 'Terms of Service</button></div></div></div>\n  ) : ('
+          old = 'Terms of Service</button></div></div>'
+          new = 'Terms of Service</button></div></div></div>'
           if old in text:
               path.write_text(text.replace(old, new, 1))
+              print("Repaired guest welcome JSX")
           else:
               print("JSX repair not needed")
           PY
