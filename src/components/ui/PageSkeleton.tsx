@@ -7,50 +7,31 @@ export default function PageSkeleton() {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    const show = () => {
-      setVisible(true);
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => setVisible(false), 420);
-    };
-
-    // Cover the first paint and every client-side route transition.
-    timer = setTimeout(() => setVisible(false), 500);
-    window.addEventListener("popstate", show);
-    window.addEventListener("nerdding:route-loading", show);
-
-    return () => {
-      if (timer) clearTimeout(timer);
-      window.removeEventListener("popstate", show);
-      window.removeEventListener("nerdding:route-loading", show);
-    };
+    const timer = window.setTimeout(() => setVisible(false), 650);
+    return () => window.clearTimeout(timer);
   }, []);
 
   if (!visible) return null;
 
   return (
     <div className="page-skeleton" aria-hidden="true">
-      <div className="page-skeleton-bar page-skeleton-top" />
-      <div className="page-skeleton-layout">
-        <aside className="page-skeleton-sidebar">
-          <div className="page-skeleton-logo" />
-          <div className="page-skeleton-nav" />
-          <div className="page-skeleton-nav short" />
-          <div className="page-skeleton-nav" />
-          <div className="page-skeleton-nav short" />
-          <div className="page-skeleton-nav" />
-        </aside>
-        <main className="page-skeleton-main">
-          <div className="page-skeleton-title" />
-          <div className="page-skeleton-card large" />
-          <div className="page-skeleton-card" />
-          <div className="page-skeleton-card" />
-        </main>
-        <aside className="page-skeleton-right">
-          <div className="page-skeleton-card" />
-          <div className="page-skeleton-card" />
-        </aside>
+      <div className="page-skeleton-content">
+        <div className="page-skeleton-header">
+          <div className="page-skeleton-title shimmer" />
+          <div className="page-skeleton-search shimmer" />
+        </div>
+        <div className="page-skeleton-grid">
+          <div className="page-skeleton-main-column">
+            <div className="page-skeleton-tabs shimmer" />
+            <div className="page-skeleton-card composer shimmer" />
+            <div className="page-skeleton-card post shimmer" />
+            <div className="page-skeleton-card post short-post shimmer" />
+          </div>
+          <div className="page-skeleton-side-column">
+            <div className="page-skeleton-card rail shimmer" />
+            <div className="page-skeleton-card rail small-rail shimmer" />
+          </div>
+        </div>
       </div>
     </div>
   );
