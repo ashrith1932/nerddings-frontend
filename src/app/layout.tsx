@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "@/components/social/social-enhancer.css";
 import "@/components/social/social-enhancer-overrides.css";
+import RouteTransitionSkeleton from "@/components/ui/RouteTransitionSkeleton";
 
 export const metadata: Metadata = {
   title: "Nerddings — A Network for People Building Things",
@@ -14,7 +15,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <RouteTransitionSkeleton />
+      </body>
     </html>
   );
 }
