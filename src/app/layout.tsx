@@ -3,6 +3,7 @@ import "./globals.css";
 import "@/components/social/social-enhancer.css";
 import "@/components/social/social-enhancer-overrides.css";
 import RouteTransitionSkeleton from "@/components/ui/RouteTransitionSkeleton";
+import PageSkeleton from "@/components/ui/PageSkeleton";
 
 export const metadata: Metadata = {
   title: "Nerddings — A Network for People Building Things",
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
+        <PageSkeleton />
         <RouteTransitionSkeleton />
       </body>
     </html>
