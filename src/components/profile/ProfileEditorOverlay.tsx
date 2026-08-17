@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Camera, Check, Loader2, X } from "lucide-react";
-import { apiFetch, getSavedUser, refreshAuthUser, uploadMedia } from "@/lib/api";
+import { apiFetch, getAuthToken, getSavedUser, saveAuthSession, uploadMedia } from "@/lib/api";
 import "./profile-polish.css";
 
 export default function ProfileEditorOverlay() {
@@ -75,12 +75,29 @@ export default function ProfileEditorOverlay() {
     setBusy(true);
     setMessage("");
     try {
-      const response = await apiFetch<{ data: { avatarUrl?: string | null; name?: string } }>("/settings/profile", {
+      const response = await apiFetch<{ data: { id: string; avatarUrl?: string | null; name?: string } }>("/settings/profile", {
         method: "PATCH",
         body: JSON.stringify({ name: name.trim(), avatarUrl }),
       });
-      const fresh = await refreshAuthUser();
-      setAvatarUrl(response.data.avatarUrl ?? fresh?.avatarUrl ?? null);
+
+      // The PATCH response is authoritative. Do not make /auth/me a required
+      // second request before reloading; a transient auth/read failure must not
+      // make a successfully written profile look like it was lost.
+      const saved = getSavedUser();
+      const token = getAuthToken();
+      if (saved && token) {
+        saveAuthSession({
+          token,
+          user: {
+            ...saved,
+            name: response.data.name ?? name.trim(),
+            avatarUrl: response.data.avatarUrl ?? avatarUrl,
+          },
+        });
+      }
+
+      setAvatarUrl(response.data.avatarUrl ?? avatarUrl ?? null);
+      setName(response.data.name ?? name.trim());
       setMessage("Profile updated.");
       window.dispatchEvent(new CustomEvent("nerdding:auth-updated"));
       window.setTimeout(() => window.location.reload(), 450);
