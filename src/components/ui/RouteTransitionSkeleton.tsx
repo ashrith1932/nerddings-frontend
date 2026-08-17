@@ -10,50 +10,53 @@ export default function RouteTransitionSkeleton() {
     const show = () => {
       if (timer) window.clearTimeout(timer);
       setVisible(true);
-      timer = window.setTimeout(() => setVisible(false), 520);
+      timer = window.setTimeout(() => setVisible(false), 700);
     };
 
     const onPopState = () => show();
-    const onClick = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      const link = target?.closest("a[href]") as HTMLAnchorElement | null;
-      if (!link || link.target === "_blank" || event.defaultPrevented) return;
-      const href = link.getAttribute("href");
-      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
-      try {
-        const url = new URL(link.href, window.location.href);
-        if (url.origin === window.location.origin && url.pathname + url.search !== window.location.pathname + window.location.search) show();
-      } catch {
-        // Ignore malformed/external URLs.
-      }
-    };
+    const onRouteLoading = () => show();
 
     window.addEventListener("popstate", onPopState);
-    document.addEventListener("click", onClick, true);
+    window.addEventListener("nerdding:route-loading", onRouteLoading);
     return () => {
       window.removeEventListener("popstate", onPopState);
-      document.removeEventListener("click", onClick, true);
+      window.removeEventListener("nerdding:route-loading", onRouteLoading);
       if (timer) window.clearTimeout(timer);
     };
   }, []);
 
   if (!visible) return null;
+
   return (
     <div className="route-skeleton-overlay" aria-hidden="true">
-      <div className="route-skeleton-card">
-        <div className="route-skeleton-line route-skeleton-title" />
-        <div className="route-skeleton-line route-skeleton-wide" />
-        <div className="route-skeleton-line route-skeleton-medium" />
-        <div className="route-skeleton-block" />
-        <div className="route-skeleton-block route-skeleton-small" />
+      <div className="route-skeleton-content">
+        <div className="route-skeleton-header">
+          <div className="route-skeleton-title" />
+          <div className="route-skeleton-search" />
+        </div>
+        <div className="route-skeleton-grid">
+          <main className="route-skeleton-main">
+            <div className="route-skeleton-tabs" />
+            <div className="route-skeleton-container composer" />
+            <div className="route-skeleton-container post" />
+            <div className="route-skeleton-container post-small" />
+          </main>
+          <aside className="route-skeleton-side">
+            <div className="route-skeleton-container rail" />
+            <div className="route-skeleton-container rail-small" />
+          </aside>
+        </div>
       </div>
       <style jsx>{`
-        .route-skeleton-overlay{position:fixed;inset:0;z-index:9999;pointer-events:none;background:rgba(247,244,238,.48);backdrop-filter:blur(1px);display:flex;align-items:flex-start;justify-content:center;padding:86px 18px 18px;animation:routeFade .12s ease-out}
-        .route-skeleton-card{width:min(760px,calc(100vw - 36px));padding:18px;border:1px solid rgba(222,215,206,.9);border-radius:14px;background:rgba(255,253,250,.82);box-shadow:0 12px 40px rgba(25,22,18,.06)}
-        .route-skeleton-line,.route-skeleton-block{background:linear-gradient(90deg,#eee8df 25%,#faf7f1 50%,#eee8df 75%);background-size:200% 100%;animation:routeShimmer .9s linear infinite;border-radius:8px}
-        .route-skeleton-title{width:32%;height:18px;margin-bottom:16px}.route-skeleton-wide{width:78%;height:11px;margin-bottom:9px}.route-skeleton-medium{width:54%;height:11px;margin-bottom:18px}.route-skeleton-block{width:100%;height:96px}.route-skeleton-small{height:58px;margin-top:10px;width:88%}
-        @keyframes routeShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}@keyframes routeFade{from{opacity:0}to{opacity:1}}
-        @media(prefers-reduced-motion:reduce){.route-skeleton-line,.route-skeleton-block{animation:none}}
+        .route-skeleton-overlay{position:fixed;top:64px;left:244px;right:0;bottom:72px;z-index:9999;pointer-events:none;background:rgba(247,244,238,.9);padding:18px 24px;overflow:hidden}
+        .route-skeleton-content{width:min(1180px,100%);margin:0 auto}
+        .route-skeleton-header{display:flex;gap:18px;align-items:center;margin-bottom:16px}
+        .route-skeleton-title,.route-skeleton-search,.route-skeleton-tabs,.route-skeleton-container{background:linear-gradient(90deg,#eee8df 25%,#faf7f1 50%,#eee8df 75%);background-size:200% 100%;animation:routeShimmer .9s linear infinite;border:1px solid rgba(222,215,206,.75);border-radius:12px}
+        .route-skeleton-title{height:28px;width:180px}.route-skeleton-search{height:34px;width:280px;margin-left:auto}.route-skeleton-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:18px}.route-skeleton-main,.route-skeleton-side{display:flex;flex-direction:column;gap:10px}.route-skeleton-tabs{height:42px;width:55%}.route-skeleton-container.composer{height:58px}.route-skeleton-container.post{height:220px}.route-skeleton-container.post-small{height:170px}.route-skeleton-container.rail{height:145px}.route-skeleton-container.rail-small{height:105px}
+        @keyframes routeShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        @media(max-width:900px){.route-skeleton-overlay{left:76px;padding:14px 16px}.route-skeleton-grid{grid-template-columns:1fr}.route-skeleton-side{display:none}}
+        @media(max-width:560px){.route-skeleton-overlay{left:0;bottom:62px;padding:12px}.route-skeleton-search{width:90px}.route-skeleton-tabs{width:80%}}
+        @media(prefers-reduced-motion:reduce){.route-skeleton-title,.route-skeleton-search,.route-skeleton-tabs,.route-skeleton-container{animation:none}}
       `}</style>
     </div>
   );
