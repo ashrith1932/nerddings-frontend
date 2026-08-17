@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Image as ImageIcon, Loader2, Rocket, X } from "lucide-react";
 import { apiFetch, getAuthToken, getSavedUser, uploadMedia } from "@/lib/api";
+import "./nerdding-enhancements.css";
 
 function PostComposer({ onClose }: { onClose: () => void }) {
   const viewer = getSavedUser();
