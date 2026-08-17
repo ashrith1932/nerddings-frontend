@@ -10,17 +10,14 @@ export default function RouteTransitionSkeleton() {
     const show = () => {
       if (timer) window.clearTimeout(timer);
       setVisible(true);
-      timer = window.setTimeout(() => setVisible(false), 700);
+      timer = window.setTimeout(() => setVisible(false), 620);
     };
 
-    const onPopState = () => show();
-    const onRouteLoading = () => show();
-
-    window.addEventListener("popstate", onPopState);
-    window.addEventListener("nerdding:route-loading", onRouteLoading);
+    window.addEventListener("popstate", show);
+    window.addEventListener("nerdding:route-loading", show);
     return () => {
-      window.removeEventListener("popstate", onPopState);
-      window.removeEventListener("nerdding:route-loading", onRouteLoading);
+      window.removeEventListener("popstate", show);
+      window.removeEventListener("nerdding:route-loading", show);
       if (timer) window.clearTimeout(timer);
     };
   }, []);
@@ -30,32 +27,22 @@ export default function RouteTransitionSkeleton() {
   return (
     <div className="route-skeleton-overlay" aria-hidden="true">
       <div className="route-skeleton-content">
-        <div className="route-skeleton-header">
-          <div className="route-skeleton-title" />
-          <div className="route-skeleton-search" />
-        </div>
+        <div className="route-skeleton-header"><div className="route-skeleton-title" /><div className="route-skeleton-search" /></div>
         <div className="route-skeleton-grid">
-          <main className="route-skeleton-main">
-            <div className="route-skeleton-tabs" />
-            <div className="route-skeleton-container composer" />
-            <div className="route-skeleton-container post" />
-            <div className="route-skeleton-container post-small" />
-          </main>
-          <aside className="route-skeleton-side">
-            <div className="route-skeleton-container rail" />
-            <div className="route-skeleton-container rail-small" />
-          </aside>
+          <main className="route-skeleton-main"><div className="route-skeleton-tabs" /><div className="route-skeleton-container composer" /><div className="route-skeleton-container post" /><div className="route-skeleton-container post-small" /></main>
+          <aside className="route-skeleton-side"><div className="route-skeleton-container rail" /><div className="route-skeleton-container rail-small" /></aside>
         </div>
       </div>
       <style jsx>{`
-        .route-skeleton-overlay{position:fixed;top:64px;left:244px;right:0;bottom:72px;z-index:9999;pointer-events:none;background:rgba(247,244,238,.9);padding:18px 24px;overflow:hidden}
-        .route-skeleton-content{width:min(1180px,100%);margin:0 auto}
-        .route-skeleton-header{display:flex;gap:18px;align-items:center;margin-bottom:16px}
-        .route-skeleton-title,.route-skeleton-search,.route-skeleton-tabs,.route-skeleton-container{background:linear-gradient(90deg,#eee8df 25%,#faf7f1 50%,#eee8df 75%);background-size:200% 100%;animation:routeShimmer .9s linear infinite;border:1px solid rgba(222,215,206,.75);border-radius:12px}
-        .route-skeleton-title{height:28px;width:180px}.route-skeleton-search{height:34px;width:280px;margin-left:auto}.route-skeleton-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:18px}.route-skeleton-main,.route-skeleton-side{display:flex;flex-direction:column;gap:10px}.route-skeleton-tabs{height:42px;width:55%}.route-skeleton-container.composer{height:58px}.route-skeleton-container.post{height:220px}.route-skeleton-container.post-small{height:170px}.route-skeleton-container.rail{height:145px}.route-skeleton-container.rail-small{height:105px}
+        .route-skeleton-overlay{--sk-a:#eee8df;--sk-b:#faf7f1;position:fixed;top:75px;left:244px;right:0;bottom:0;z-index:9999;pointer-events:none;background:var(--paper,#f9f7f2);padding:28px 42px 60px;overflow:hidden;isolation:isolate}
+        .route-skeleton-content{width:min(1150px,100%);margin:0 auto}
+        .route-skeleton-header{height:34px;display:flex;gap:18px;align-items:center;margin-bottom:22px}
+        .route-skeleton-title,.route-skeleton-search,.route-skeleton-tabs,.route-skeleton-container{background:linear-gradient(90deg,var(--sk-a) 20%,var(--sk-b) 50%,var(--sk-a) 80%);background-size:200% 100%;animation:routeShimmer 1.1s ease-in-out infinite;border:1px solid var(--line,#e7e0d6);border-radius:10px}
+        .route-skeleton-title{height:28px;width:180px}.route-skeleton-search{height:34px;width:min(340px,40%);margin-left:auto}.route-skeleton-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:22px}.route-skeleton-main,.route-skeleton-side{display:flex;flex-direction:column;gap:12px}.route-skeleton-tabs{height:42px;width:55%}.route-skeleton-container.composer{height:58px}.route-skeleton-container.post{height:220px}.route-skeleton-container.post-small{height:170px}.route-skeleton-container.rail{height:145px}.route-skeleton-container.rail-small{height:105px}
+        :global(:root[data-theme="dark"]) .route-skeleton-overlay{--sk-a:#2a2520;--sk-b:#39322c}
         @keyframes routeShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-        @media(max-width:900px){.route-skeleton-overlay{left:76px;padding:14px 16px}.route-skeleton-grid{grid-template-columns:1fr}.route-skeleton-side{display:none}}
-        @media(max-width:560px){.route-skeleton-overlay{left:0;bottom:62px;padding:12px}.route-skeleton-search{width:90px}.route-skeleton-tabs{width:80%}}
+        @media(max-width:900px){.route-skeleton-overlay{top:62px;left:0;bottom:63px;padding:20px 15px 35px}.route-skeleton-grid{grid-template-columns:1fr}.route-skeleton-side{display:none}}
+        @media(max-width:560px){.route-skeleton-overlay{padding:15px 13px 25px}.route-skeleton-search{width:90px}.route-skeleton-tabs{width:80%}}
         @media(prefers-reduced-motion:reduce){.route-skeleton-title,.route-skeleton-search,.route-skeleton-tabs,.route-skeleton-container{animation:none}}
       `}</style>
     </div>
