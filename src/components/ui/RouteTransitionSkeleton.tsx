@@ -10,11 +10,29 @@ export default function RouteTransitionSkeleton() {
     const show = () => {
       if (timer) window.clearTimeout(timer);
       setVisible(true);
-      timer = window.setTimeout(() => setVisible(false), 420);
+      timer = window.setTimeout(() => setVisible(false), 520);
     };
-    window.addEventListener("popstate", show);
+
+    const onPopState = () => show();
+    const onClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const link = target?.closest("a[href]") as HTMLAnchorElement | null;
+      if (!link || link.target === "_blank" || event.defaultPrevented) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+      try {
+        const url = new URL(link.href, window.location.href);
+        if (url.origin === window.location.origin && url.pathname + url.search !== window.location.pathname + window.location.search) show();
+      } catch {
+        // Ignore malformed/external URLs.
+      }
+    };
+
+    window.addEventListener("popstate", onPopState);
+    document.addEventListener("click", onClick, true);
     return () => {
-      window.removeEventListener("popstate", show);
+      window.removeEventListener("popstate", onPopState);
+      document.removeEventListener("click", onClick, true);
       if (timer) window.clearTimeout(timer);
     };
   }, []);
