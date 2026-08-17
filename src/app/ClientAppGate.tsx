@@ -91,6 +91,8 @@ export default function ClientAppGate() {
     if (!ready) return;
     const target = document.querySelector(".app-main .page-content") as HTMLElement | null;
     setPortalTarget(target);
+    document.body.dataset.nerddingEnhancedRoute = path;
+    return () => { delete document.body.dataset.nerddingEnhancedRoute; };
   }, [ready, path]);
 
   if (!ready) return <AppSkeleton />;
@@ -103,7 +105,7 @@ export default function ClientAppGate() {
 
   return (
     <>
-      <style>{`\n        .nerdding-enhanced-route{width:100%}\n        .nerdding-enhanced-route > .nerdd-route-surface{width:100%}\n        .nerdding-enhanced-route .view{max-width:none}\n        .create-popover .create-option:nth-of-type(n+3){display:none}\n      `}</style>
+      <style>{`\n        .nerdding-enhanced-route{width:100%}\n        .nerdding-enhanced-route > .nerdd-route-surface{position:relative;inset:auto;z-index:auto;width:100%;min-height:100%;overflow:visible;padding:0 0 72px}\n        .nerdding-enhanced-route .view{max-width:none}\n        body[data-nerdding-enhanced-route^="/profile/"] .page-content > .profile-view,\n        body[data-nerdding-enhanced-route^="/settings"] .page-content > .settings-view,\n        body[data-nerdding-enhanced-route^="/project/"] .page-content > .project-view{display:none!important}\n        .create-popover .create-option:nth-of-type(n+3){display:none}\n      `}</style>
       <NerddingApp />
       {portalTarget && createPortal(
         <div className="nerdding-enhanced-route">
