@@ -1,7 +1,6 @@
 "use client";
 import { useEffect } from "react";
 import InteractionCreateLayer from "@/components/app/InteractionCreateLayer";
-import FeedPostEnhancer from "@/components/social/FeedPostEnhancer";
 
 function enhance(root: ParentNode){
   const nodes=root.querySelectorAll<HTMLElement>(".home-post-copy,.home-active-text,.live-search-item small");
@@ -20,5 +19,5 @@ function enhance(root: ParentNode){
 
 export default function HashtagEnhancer(){
   useEffect(()=>{enhance(document);const observer=new MutationObserver(()=>enhance(document));observer.observe(document.body,{subtree:true,childList:true});return()=>observer.disconnect()},[]);
-  return <><InteractionCreateLayer/><FeedPostEnhancer/><style>{`.nerdding-hashtag-link{color:var(--accent,#d35d34);font-weight:700;text-decoration:none}.nerdding-hashtag-link:hover{text-decoration:underline}`}</style></>;
+  return <><InteractionCreateLayer/><style>{`.nerdding-hashtag-link{color:var(--accent,#d35d34);font-weight:700;text-decoration:none}.nerdding-hashtag-link:hover{text-decoration:underline}`}</style></>;
 }
