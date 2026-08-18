@@ -82,6 +82,36 @@
 .agent-pending-copy small { color: var(--subtle); font-size: 10px; line-height: 1.4; }
 .agent-pending-notice > button { color: var(--subtle); padding: 2px; }
 
+.profile-tab-actionbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 16px; margin-bottom:14px; border:1px solid var(--line); border-radius:12px; background:var(--card); box-shadow:0 6px 18px rgba(23,20,17,.035); }
+.profile-tab-actionbar > div { min-width:0; display:flex; flex-direction:column; gap:4px; }
+.profile-tab-actionbar .eyebrow { margin:0; }
+.profile-tab-actionbar strong { font:700 14px 'Space Grotesk', sans-serif; color:var(--ink); letter-spacing:-.01em; }
+.profile-tab-action { display:inline-flex; align-items:center; justify-content:center; gap:7px; flex:0 0 auto; white-space:nowrap; padding:9px 13px; border-radius:9px; }
+.profile-action-modal-backdrop { position:fixed; inset:0; z-index:100001; display:grid; place-items:center; padding:20px; background:rgba(10,9,8,.54); backdrop-filter:blur(8px); }
+.profile-action-modal { width:min(500px,100%); max-height:calc(100vh - 40px); overflow:auto; padding:22px; border:1px solid var(--line); border-radius:16px; background:var(--card); color:var(--ink); box-shadow:0 28px 80px rgba(23,20,17,.22); }
+.profile-action-modal header { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin-bottom:18px; }
+.profile-action-modal header h2 { margin:4px 0 5px; font:700 23px 'Space Grotesk',sans-serif; letter-spacing:-.035em; }
+.profile-action-modal header p { margin:0; color:var(--muted); font-size:11px; line-height:1.45; }
+.profile-action-modal-close { width:32px; height:32px; display:grid; place-items:center; border:1px solid var(--line); border-radius:9px; color:var(--muted); background:var(--card); }
+.profile-action-field { display:grid; gap:6px; margin-top:12px; }
+.profile-action-field > span { color:var(--muted); font-size:10px; font-weight:700; }
+.profile-action-field > input { width:100%; box-sizing:border-box; padding:10px 11px; border:1px solid var(--line); border-radius:9px; background:var(--paper); color:var(--ink); outline:none; }
+.profile-action-field > input:focus { border-color:var(--accent); }
+.profile-action-input { display:flex; align-items:center; gap:8px; padding:0 11px; border:1px solid var(--line); border-radius:9px; background:var(--paper); color:var(--subtle); }
+.profile-action-input:focus-within { border-color:var(--accent); }
+.profile-action-input input { min-width:0; width:100%; padding:10px 0; border:0; outline:0; background:transparent; color:var(--ink); }
+.profile-action-results { margin-top:14px; border-top:1px solid var(--line); }
+.profile-action-agent { width:100%; display:flex; align-items:center; gap:10px; padding:11px 2px; border:0; border-bottom:1px solid var(--line); background:transparent; color:var(--ink); text-align:left; cursor:pointer; }
+.profile-action-agent:hover { background:var(--paper); }
+.profile-action-agent:disabled { opacity:.55; cursor:default; }
+.profile-action-agent > span:nth-child(2) { min-width:0; flex:1; }
+.profile-action-agent strong,.profile-action-agent small { display:block; }
+.profile-action-agent strong { font-size:11px; }
+.profile-action-agent small { margin-top:2px; color:var(--subtle); font-size:9px; }
+.profile-action-agent-badge { width:32px; height:32px; flex:0 0 32px; display:grid; place-items:center; border-radius:50%; background:color-mix(in srgb,var(--accent) 10%,var(--card)); color:var(--accent); font:700 12px 'Space Grotesk',sans-serif; }
+.profile-action-error { margin:10px 0 0; color:#b14b2f; font-size:10px; }
+.profile-action-empty { display:block; padding:14px 2px; color:var(--subtle); font-size:10px; }
+
 @media (max-width: 760px) {
   .social-enhancer-content .se-profile-cover { height: 150px !important; }
   .social-enhancer-content .se-profile-head { padding: 0 8px !important; gap: 11px !important; }
@@ -90,4 +120,8 @@
   .se-profile-editor-backdrop { padding: 10px; }
   .se-profile-editor { padding: 18px; border-radius: 14px; }
   .agent-pending-notice { top: 72px; right: 16px; }
+  .profile-tab-actionbar { align-items:flex-start; flex-direction:column; }
+  .profile-tab-action { width:100%; }
+  .profile-action-modal-backdrop { padding:10px; }
+  .profile-action-modal { padding:18px; border-radius:14px; }
 }
