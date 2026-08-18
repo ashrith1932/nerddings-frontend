@@ -41,6 +41,17 @@ if (feed.includes(oldActions)) {
 } else {
   console.log("HomeFeedSurface action footer pattern not found.");
 }
+
+// Remove the redundant summary row above the action footer. The footer is the
+// single source of truth for likes/comments/amplifies and views/save.
+feed = feed.replace(/<div className="home-post-stats">.*?<\/div>/g, "");
+
+// The global app stylesheet contains legacy flex rules that can collapse the
+// action buttons into a vertical stack. Inject stronger, local rules into the
+// HomeFeedSurface stylesheet so the footer is always a single horizontal row.
+const actionCss = '.home-actions{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;flex-wrap:nowrap!important;gap:8px!important;min-width:0!important;width:100%!important}.home-actions-left,.home-actions-right{display:flex!important;flex-direction:row!important;align-items:center!important;flex-wrap:nowrap!important;gap:6px!important;min-width:0!important}.home-actions-left{flex:0 0 auto!important}.home-actions-right{margin-left:auto!important;flex:0 0 auto!important}.home-actions button{flex:0 0 auto!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;min-width:auto!important;width:auto!important;height:30px!important;padding:6px 5px!important}.home-actions-right>span{display:inline-flex!important;align-items:center!important;white-space:nowrap!important;color:#7d736b!important;font-size:10px!important;padding:6px 4px!important}.home-actions-right button span{display:inline!important}.home-actions-right button svg{flex:0 0 auto!important}.home-post{min-width:0!important;overflow:hidden!important}@media(max-width:600px){.home-actions{gap:4px!important}.home-actions-left,.home-actions-right{gap:3px!important}.home-actions button{padding:5px 3px!important}.home-actions-right>span{padding:5px 3px!important}.home-actions button span{display:inline!important}.home-actions-right button span{display:inline!important}}';
+feed = feed.replace('.home-actions button.active{color:var(--accent,#d85a2d)}', '.home-actions button.active{color:var(--accent,#d85a2d)}' + actionCss);
+
 feed = feed.replace(
   '<div className="home-active-stats"><span>{current.likes} likes</span><span>{current.comments} comments</span><span>{current.reposts} nerddings</span></div>',
   '<div className="home-active-stats"><span>{current.likes} likes</span><span>{current.comments} comments</span><span>{current.reposts} amplifies</span><span>Views {current.views ?? 0}</span></div>',
