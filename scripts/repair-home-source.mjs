@@ -31,19 +31,19 @@ let feed = fs.readFileSync(feedFile, "utf8");
 feed = feed.replace(".home-live-host>.view{display:none!important}", ".home-live-host .view{display:none!important}");
 feed = feed.replace("saves: number; liked?", "saves: number; views?: number; liked?");
 
-// Keep the source-code template literal interpolation literal. Without the
-// escaped `${` below, Node evaluates `window.location.origin` while running
-// this build-time repair script (where `window` does not exist).
-const oldActions = `<div className="home-actions"><button className={post.liked ? "active" : ""} onClick={() => void action("like")}><Heart size={16} fill={post.liked ? "currentColor" : "none"} /><span>{post.likes}</span></button><button onClick={select}><MessageCircle size={16} /><span>{post.comments}</span></button><button className={post.reposted ? "active" : ""} onClick={() => void action("repost")}><Activity size={16} /><span>{post.reposts}</span></button><button className={post.saved ? "active" : ""} onClick={() => void action("save")}><Bookmark size={16} fill={post.saved ? "currentColor" : "none"} /></button><button onClick={select}><Quote size={16} /></button><button onClick={async () => { await navigator.clipboard?.writeText(\`\${window.location.origin}/post/\${post.id}\`); }}><Share2 size={16} /></button></div>`;
-const newActions = `<div className="home-actions"><div className="home-actions-left"><button className={post.liked ? "active" : ""} onClick={() => void action("like")}><Heart size={16} fill={post.liked ? "currentColor" : "none"} /><span>{post.likes}</span></button><button onClick={select}><MessageCircle size={16} /><span>{post.comments}</span></button><button className={post.reposted ? "active" : ""} onClick={() => void action("repost")}><Activity size={16} fill={post.reposted ? "currentColor" : "none"} /><span>{post.reposts}</span></button></div><div className="home-actions-right"><span title="Views">Views {post.views ?? 0}</span><button className={post.saved ? "active" : ""} onClick={() => void action("save")} title="Save"><Bookmark size={16} fill={post.saved ? "currentColor" : "none"} /><span>Save</span></button></div></div>`;
+// Keep these source fragments literal. They contain JSX/JS template
+// interpolation that must be written into HomeFeedSurface, not evaluated by
+// this Node build-repair script.
+const oldActions = '<div className="home-actions"><button className={post.liked ? "active" : ""} onClick={() => void action("like")}><Heart size={16} fill={post.liked ? "currentColor" : "none"} /><span>{post.likes}</span></button><button onClick={select}><MessageCircle size={16} /><span>{post.comments}</span></button><button className={post.reposted ? "active" : ""} onClick={() => void action("repost")}><Activity size={16} /><span>{post.reposts}</span></button><button className={post.saved ? "active" : ""} onClick={() => void action("save")}><Bookmark size={16} fill={post.saved ? "currentColor" : "none"} /></button><button onClick={select}><Quote size={16} /></button><button onClick={async () => { await navigator.clipboard?.writeText(`${window.location.origin}/post/${post.id}`); }}><Share2 size={16} /></button></div>';
+const newActions = '<div className="home-actions"><div className="home-actions-left"><button className={post.liked ? "active" : ""} onClick={() => void action("like")}><Heart size={16} fill={post.liked ? "currentColor" : "none"} /><span>{post.likes}</span></button><button onClick={select}><MessageCircle size={16} /><span>{post.comments}</span></button><button className={post.reposted ? "active" : ""} onClick={() => void action("repost")}><Activity size={16} fill={post.reposted ? "currentColor" : "none"} /><span>{post.reposts}</span></button></div><div className="home-actions-right"><span title="Views">Views {post.views ?? 0}</span><button className={post.saved ? "active" : ""} onClick={() => void action("save")} title="Save"><Bookmark size={16} fill={post.saved ? "currentColor" : "none"} /><span>Save</span></button></div></div>';
 if (feed.includes(oldActions)) {
   feed = feed.replace(oldActions, newActions);
 } else {
   console.log("HomeFeedSurface action footer pattern not found.");
 }
 feed = feed.replace(
-  "<div className=\"home-active-stats\"><span>{current.likes} likes</span><span>{current.comments} comments</span><span>{current.reposts} nerddings</span></div>",
-  "<div className=\"home-active-stats\"><span>{current.likes} likes</span><span>{current.comments} comments</span><span>{current.reposts} amplifies</span><span>Views {current.views ?? 0}</span></div>",
+  '<div className="home-active-stats"><span>{current.likes} likes</span><span>{current.comments} comments</span><span>{current.reposts} nerddings</span></div>',
+  '<div className="home-active-stats"><span>{current.likes} likes</span><span>{current.comments} comments</span><span>{current.reposts} amplifies</span><span>Views {current.views ?? 0}</span></div>',
 );
 fs.writeFileSync(feedFile, feed);
 console.log("Polished HomeFeedSurface route/interaction markup before build.");
