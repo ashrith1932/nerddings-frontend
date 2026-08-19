@@ -17,7 +17,7 @@ type ProfileData = {
   stats: { followers: number; following: number; projects: number; posts: number };
   projects: Array<{ id: string; name: string; slug: string; description: string; stage: string; github_url?: string | null; created_at?: string }>;
   posts: Array<{ id: string; text: string; createdAt: string }>;
-  affiliations: Array<{ id: string; name: string; slug: string; type: string; verified: boolean; role: string }>;
+  affiliations?: Array<{ id: string; name: string; slug: string; type: string; verified: boolean; role: string }>;
 };
 type Agent = { id: string; name: string; slug: string; type: string; verified: boolean };
 const me = () => getSavedUser();
@@ -48,6 +48,7 @@ export default function ProfilePage({ username }: { username: string }) {
     setLoading(true); setError("");
     try {
       const r = await apiFetch<{ data: ProfileData }>(`/social/users/${encodeURIComponent(username)}/profile-live`);
+      if (!r.data?.user) throw new Error("Profile data is incomplete.");
       setData(r.data); setCover(r.data.user.coverUrl ?? null); setLogo(r.data.user.profileLogoUrl ?? null); setX(r.data.user.coverPositionX ?? 50); setY(r.data.user.coverPositionY ?? 50);
       if (!own && me()) setFollowing((await apiFetch<{ data: { active: boolean } }>(`/social/users/${r.data.user.id}/following`)).data.active);
     } catch (e) { setError(e instanceof Error ? e.message : "Profile could not be loaded"); }
@@ -78,6 +79,7 @@ export default function ProfilePage({ username }: { username: string }) {
   if (loading) return <Skeleton />;
   if (!data) return <div className="profile-page"><div className="empty-state"><strong>Profile not found.</strong><span>{error}</span><button className="outline-button" onClick={() => void load()}>Try again</button></div></div>;
   const user = mapUser(data.user);
+  const affiliations = Array.isArray(data.affiliations) ? data.affiliations : [];
   const filteredAgents = agents.filter((a) => `${a.name} ${a.slug}`.toLowerCase().includes(query.toLowerCase()));
   return (
     <div className="profile-page">
@@ -92,7 +94,7 @@ export default function ProfilePage({ username }: { username: string }) {
         <div className="profile-head-copy">
           <div className="profile-title-row"><div><h1>{user.name} {user.verified && <VerifiedMark />}</h1><p>@{user.username}{user.location ? ` · ${user.location}` : ""}</p></div><div className="profile-actions">{own ? <button className="outline-button" onClick={() => setCrop(true)}><SettingsIcon size={14} /> Edit banner</button> : <button className={following ? "outline-button" : "primary-button"} onClick={() => void follow()}>{following ? <Check size={14} /> : <Plus size={14} />} {following ? "Following" : "Follow"}</button>}<button className="outline-button"><MoreHorizontal size={16} /></button></div></div>
           <p className="profile-bio">{user.bio || "Building in public on Nerdding."}</p>
-          <div className="role-pills">{user.roles.map((r) => <span key={r}>{r}</span>)}{data.affiliations.map((a) => <span key={a.id}>{a.name} · {a.role}</span>)}</div>
+          <div className="role-pills">{user.roles.map((r) => <span key={r}>{r}</span>)}{affiliations.map((a) => <span key={a.id}>{a.name} · {a.role}</span>)}</div>
         </div>
       </div>
       <div style={{ fontFamily: "'Space Grotesk', sans-serif" }}><ProfileSectionTabs username={username} /></div>
