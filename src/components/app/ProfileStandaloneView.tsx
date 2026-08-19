@@ -3,20 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, ArrowRight, Bookmark, Check, Ellipsis, Eye, Github, Heart, MessageCircle, Plus, Search, Send, Settings as SettingsIcon, X } from "lucide-react";
 import { Avatar, VerifiedMark } from "@/components/ui/Avatar";
-import { getSavedUser } from "@/lib/api";
-import {
-  amplifyProfilePost,
-  getProfilePost,
-  getProfileSnapshot,
-  getProfileFollowing,
-  toggleProfileFollowing,
-  toggleProfileLike,
-  toggleProfileSave,
-  type ProfilePost,
-  type ProfileProject,
-  type ProfileSnapshot,
-  type ProfileUser,
-} from "@/lib/profileApi";
+import { getSavedUser } from "@/services/api";
+import { amplifyProfilePost, getProfilePost, getProfileSnapshot, getProfileFollowing, toggleProfileFollowing, toggleProfileLike, toggleProfileSave, type ProfilePost, type ProfileProject, type ProfileSnapshot, type ProfileUser } from "@/services/profile";
 import MainContentLayoutFix from "@/components/app/MainContentLayoutFix";
 import SiteFooter from "@/components/app/SiteFooter";
 import "@/components/app/nerdding-route-surfaces.css";
@@ -72,18 +60,10 @@ function PostCard({ post, user, onOpen }: { post: ProfilePost; user: ProfileUser
       <button className="home-more" aria-label="Post options" onClick={(event) => event.stopPropagation()}><Ellipsis size={17} /></button>
     </div>
     <div className="home-post-copy">{post.text}</div>
-    {post.quotePost?.author ? <article className="nerdd-quote profile-quote-card" role="button" tabIndex={0} onClick={(event) => { event.stopPropagation(); onOpen(post.quotePost!.id); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onOpen(post.quotePost!.id); } }}>
-      <div className="nerdd-quote-label">QUOTED POST</div>
-      <div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{post.quotePost.author.avatarUrl ? <img src={post.quotePost.author.avatarUrl} alt="" /> : initials(post.quotePost.author.name)}</span><span><strong>{post.quotePost.author.name}</strong><small>@{post.quotePost.author.username} · {ago(post.quotePost.createdAt)}</small></span></div>
-      <div className="nerdd-quote-text">{post.quotePost.text}</div>
-    </article> : null}
+    {post.quotePost?.author ? <article className="nerdd-quote profile-quote-card" role="button" tabIndex={0} onClick={(event) => { event.stopPropagation(); onOpen(post.quotePost!.id); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onOpen(post.quotePost!.id); } }}><div className="nerdd-quote-label">QUOTED POST</div><div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{post.quotePost.author.avatarUrl ? <img src={post.quotePost.author.avatarUrl} alt="" /> : initials(post.quotePost.author.name)}</span><span><strong>{post.quotePost.author.name}</strong><small>@{post.quotePost.author.username} · {ago(post.quotePost.createdAt)}</small></span></div><div className="nerdd-quote-text">{post.quotePost.text}</div></article> : null}
     {post.projectName ? <button className="home-project" onClick={(event) => { event.stopPropagation(); window.dispatchEvent(new CustomEvent("nerdding:open-project-panel", { detail: { id: post.projectId, slug: post.projectSlug } })); }}><span><strong>{post.projectName}</strong><small>Project</small></span><ArrowRight size={14} /></button> : null}
     {post.linkUrl ? <a className="home-link" href={post.linkUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>{post.linkUrl.replace(/^https?:\/\//, "")}</a> : null}
-    <div className="home-actions"><div className="home-actions-left">
-      <button disabled={busy} onClick={(event) => { event.stopPropagation(); void action("like"); }}><Heart size={16} /><span>{likes}</span></button>
-      <button onClick={(event) => { event.stopPropagation(); onOpen(post.id); }}><MessageCircle size={16} /><span>{post.comments}</span></button>
-      <button data-action="amplify" disabled={busy} onClick={(event) => { event.stopPropagation(); void action("amplify"); }}><Activity size={16} /><span>{reposts}</span></button>
-    </div><div className="home-actions-right"><span className="home-views"><Eye size={14} /> {post.views ?? 0} views</span><button disabled={busy} onClick={(event) => { event.stopPropagation(); void action("save"); }}><Bookmark size={16} /><span>Save {saves}</span></button><button data-action="send" onClick={(event) => event.stopPropagation()}><Send size={16} /><span>Send</span></button></div></div>
+    <div className="home-actions"><div className="home-actions-left"><button disabled={busy} onClick={(event) => { event.stopPropagation(); void action("like"); }}><Heart size={16} /><span>{likes}</span></button><button onClick={(event) => { event.stopPropagation(); onOpen(post.id); }}><MessageCircle size={16} /><span>{post.comments}</span></button><button data-action="amplify" disabled={busy} onClick={(event) => { event.stopPropagation(); void action("amplify"); }}><Activity size={16} /><span>{reposts}</span></button></div><div className="home-actions-right"><span className="home-views"><Eye size={14} /> {post.views ?? 0} views</span><button disabled={busy} onClick={(event) => { event.stopPropagation(); void action("save"); }}><Bookmark size={16} /><span>Save {saves}</span></button><button data-action="send" onClick={(event) => event.stopPropagation()}><Send size={16} /><span>Send</span></button></div></div>
   </article>;
 }
 
@@ -101,7 +81,7 @@ function ActivePost({ postId, onClose, onBack }: { postId: string; onClose: () =
   useEffect(() => { let alive = true; setBusy(true); void getProfilePost(postId).then((value) => { if (alive) setPost(value); }).finally(() => { if (alive) setBusy(false); }); return () => { alive = false; }; }, [postId]);
   if (busy && !post) return <section className="home-active-post"><div className="home-modal"><div className="home-modal-head"><strong>Active post</strong><button onClick={onClose}><X size={17} /></button></div><div className="home-modal-scroll"><div className="profile-tab-skeleton-list"><div className="profile-tab-skeleton-row" /><div className="profile-tab-skeleton-row" /><div className="profile-tab-skeleton-row" /></div></div></div></section>;
   if (!post) return null;
-  return <section className="home-active-post"><div className="home-modal"><header className="home-modal-head"><div><small>POST DETAIL</small><h2>Active post</h2></div><div style={{ display: "flex", gap: 6 }}>{onBack ? <button aria-label="Back" onClick={onBack}>←</button> : null}<button aria-label="Close" onClick={onClose}><X size={17} /></button></div></header><div className="home-modal-scroll"><article className="home-modal-content"><div className="home-post-head"><span className="home-author"><span className="home-avatar home-avatar-md">{post.author?.avatarUrl ? <img src={post.author.avatarUrl} alt="" /> : initials(post.author?.name)}</span><span><strong>{post.author?.name}</strong><small>@{post.author?.username}</small></span></span><small>{new Date(post.createdAt).toLocaleString()}</small></div><div className="home-active-text">{post.text}</div>{post.quotePost?.author ? <button className="nerdd-quote profile-quote-card" onClick={() => {}}><div className="nerdd-quote-label">QUOTED POST</div><div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{post.quotePost.author.avatarUrl ? <img src={post.quotePost.author.avatarUrl} alt="" /> : initials(post.quotePost.author.name)}</span><span><strong>{post.quotePost.author.name}</strong><small>@{post.quotePost.author.username}</small></span></div><div className="nerdd-quote-text">{post.quotePost.text}</div></button> : null}<div className="home-actions"><span><Heart size={15}/> {post.likes}</span><span><MessageCircle size={15}/> {post.comments}</span><span><Activity size={15}/> {post.reposts}</span><span><Eye size={15}/> {post.views}</span><span><Bookmark size={15}/> {post.saves}</span></div></article></div></div></section>;
+  return <section className="home-active-post"><div className="home-modal"><header className="home-modal-head"><div><small>POST DETAIL</small><h2>Active post</h2></div><div style={{ display: "flex", gap: 6 }}>{onBack ? <button aria-label="Back" onClick={onBack}>←</button> : null}<button aria-label="Close" onClick={onClose}><X size={17} /></button></div></header><div className="home-modal-scroll"><article className="home-modal-content"><div className="home-post-head"><span className="home-author"><span className="home-avatar home-avatar-md">{post.author?.avatarUrl ? <img src={post.author.avatarUrl} alt="" /> : initials(post.author?.name)}</span><span><strong>{post.author?.name}</strong><small>@{post.author?.username}</small></span></span><small>{new Date(post.createdAt).toLocaleString()}</small></div><div className="home-active-text">{post.text}</div>{post.quotePost?.author ? <button className="nerdd-quote profile-quote-card"><div className="nerdd-quote-label">QUOTED POST</div><div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{post.quotePost.author.avatarUrl ? <img src={post.quotePost.author.avatarUrl} alt="" /> : initials(post.quotePost.author.name)}</span><span><strong>{post.quotePost.author.name}</strong><small>@{post.quotePost.author.username}</small></span></div><div className="nerdd-quote-text">{post.quotePost.text}</div></button> : null}<div className="home-actions"><span><Heart size={15}/> {post.likes}</span><span><MessageCircle size={15}/> {post.comments}</span><span><Activity size={15}/> {post.reposts}</span><span><Eye size={15}/> {post.views}</span><span><Bookmark size={15}/> {post.saves}</span></div></article></div></div></section>;
 }
 
 export default function ProfileStandaloneView({ username }: { username: string }) {
