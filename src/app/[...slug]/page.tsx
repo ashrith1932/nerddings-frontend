@@ -5,6 +5,15 @@ const NerddingApp = dynamic(
   { ssr: false },
 );
 
-export default function CatchAllPage() {
+const ProfileRouteOnly = dynamic(
+  () => import("@/components/app/ProfileRouteOnly").then((module) => module.default),
+  { ssr: false },
+);
+
+export default function CatchAllPage({ params }: { params: { slug?: string[] } }) {
+  const slug = params.slug ?? [];
+  if (slug[0] === "profile" && slug[1]) {
+    return <ProfileRouteOnly username={decodeURIComponent(slug[1])} />;
+  }
   return <NerddingApp />;
 }
