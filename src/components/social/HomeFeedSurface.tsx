@@ -90,6 +90,8 @@ const activePanelStyles = `
 .home-info-list > div:first-child { padding-top: 0; border-top: 0; }
 .home-info-list strong { display: block; color: var(--ink, #201c19); font-size: 11px; }
 .home-info-list small { display: block; margin-top: 2px; color: #9b9188; font-size: 9px; }
+.home-inline-composer { min-width: 0; max-height: min(70vh, 760px); overflow: auto; border: 1px solid var(--line, #ddd6cc); border-radius: 12px; background: var(--card, #fff); }
+.home-inline-composer .home-composer-modal { width: 100%; max-height: none; border: 0; border-radius: 0; box-shadow: none; }
 .nerdd-quote { border: 1px solid #d9d2c9; background: #faf7f2; border-radius: 11px; padding: 11px; margin: 0 0 10px; cursor: pointer; }
 .nerdd-quote-label { font-size: 8px; font-weight: 800; letter-spacing: .13em; color: #9a9087; margin-bottom: 8px; }
 .nerdd-quote-head { display: flex; align-items: center; gap: 8px; }
@@ -654,9 +656,11 @@ function HomeInfoRail() {
 function Composer({
   onClose,
   onPosted,
+  inline = false,
 }: {
   onClose: () => void;
   onPosted: () => void;
+  inline?: boolean;
 }) {
   const viewer = getSavedUser();
   const [text, setText] = useState("");
@@ -676,7 +680,7 @@ function Composer({
   };
   return (
     <div
-      className="home-composer-backdrop"
+      className={inline ? "home-inline-composer" : "home-composer-backdrop"}
       onMouseDown={(e) => e.currentTarget === e.target && onClose()}
     >
       <div className="home-composer-modal">
@@ -845,7 +849,16 @@ export default function HomeFeedSurface() {
                 </div>
               )}
             </main>
-            {selected ? (
+            {composer ? (
+              <Composer
+                inline
+                onClose={() => setComposer(false)}
+                onPosted={() => {
+                  setComposer(false);
+                  void load();
+                }}
+              />
+            ) : selected ? (
               <ActivePostModal
                 key={selected.id}
                 post={selected}
@@ -857,15 +870,6 @@ export default function HomeFeedSurface() {
           </div>
         </div>
       </div>
-      {composer ? (
-        <Composer
-          onClose={() => setComposer(false)}
-          onPosted={() => {
-            setComposer(false);
-            void load();
-          }}
-        />
-      ) : null}
     </>
   );
 }

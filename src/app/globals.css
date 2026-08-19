@@ -1362,6 +1362,9 @@ body { overflow-x: hidden; }
   }
 }
 
+/* ProfileSectionTabs is the live profile content source; hide the legacy duplicate body. */
+.profile-view > .profile-body { display: none; }
+
 @media (max-width: 768px) {
   .nerdding-enhanced-route {
     grid-template-columns: 1fr;
