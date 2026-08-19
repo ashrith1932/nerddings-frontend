@@ -10,7 +10,8 @@ import AgentVerificationGate2 from "@/components/agent/AgentVerificationGate2";
 import AgentVerificationRedirect from "@/components/agent/AgentVerificationRedirect";
 import AgentLoginLink from "@/components/agent/AgentLoginLink";
 import AgentPendingNotice from "@/components/agent/AgentPendingNotice";
-import { apiFetch, getAuthToken } from "@/lib/api";
+import { getAuthToken } from "@/lib/api";
+import { getNavigationCounts } from "@/services/navigation";
 
 const MESSAGE_CACHE_PREFIX = "nerdding.messages.v2.";
 
@@ -64,19 +65,10 @@ export default function AppRuntime({ path }: { path: string }) {
       const token = getAuthToken();
       if (!token) return;
       try {
-        const [notifications, messages] = await Promise.allSettled([
-          apiFetch<any>("/notifications"),
-          apiFetch<any>("/social/messages/unread-count"),
-        ]);
-        const notificationCount = notifications.status === "fulfilled"
-          ? Number(notifications.value?.unreadCount ?? notifications.value?.data?.unreadCount ?? 0)
-          : 0;
-        const messageCount = messages.status === "fulfilled"
-          ? Number(messages.value?.data?.unreadCount ?? 0) + Number(messages.value?.data?.pendingRequests ?? 0)
-          : 0;
+        const { notifications, messages } = await getNavigationCounts();
         document.querySelectorAll<HTMLElement>(".nav-item").forEach((item) => {
           const label = item.querySelector("span")?.textContent?.trim();
-          const count = label === "Messages" ? messageCount : label === "Notifications" ? notificationCount : 0;
+          const count = label === "Messages" ? messages : label === "Notifications" ? notifications : 0;
           let badge = item.querySelector<HTMLElement>("b");
           if (count <= 0) { badge?.remove(); return; }
           if (!badge) { badge = document.createElement("b"); item.appendChild(badge); }
