@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, Bookmark, Eye, Heart, Loader2, MessageCircle, MoreHorizontal, Plus, Send, X, ArrowLeft } from "lucide-react";
 import { apiFetch, getSavedUser } from "@/lib/api";
+import { VerifiedMark } from "@/components/ui/Avatar";
 import ThreadedCommentTree, { type ThreadComment } from "@/components/social/ThreadedCommentTree";
 import { backActivePost, clearActivePostHistory, enterActivePost } from "@/components/social/ActivePostHistory";
 
@@ -22,7 +23,7 @@ const styles=`
 
 const timeAgo=(value:string)=>{const s=Math.max(0,Math.floor((Date.now()-new Date(value).getTime())/1000));if(s<60)return"now";if(s<3600)return`${Math.floor(s/60)}m`;if(s<86400)return`${Math.floor(s/3600)}h`;return`${Math.floor(s/86400)}d`};
 const initials=(name?:string)=>(name??"N").split(/\s+/).filter(Boolean).map(p=>p[0]).join("").slice(0,2).toUpperCase();
-function Avatar({user,size="sm"}:{user?:UserRef|null;size?:"xs"|"sm"|"md"}){return <span className={`home-avatar home-avatar-${size}`}>{user?.avatarUrl?<img src={user.avatarUrl} alt=""/>:initials(user?.name)}</span>}
+function Avatar({user,size="sm"}:{user?:UserRef|null;size?:"xs"|"sm"|"md"}){return <span className={`home-avatar home-avatar-${size}`} style={{position:"relative"}}>{user?.avatarUrl?<img src={user.avatarUrl} alt=""/>:initials(user?.name)}{user?.accountType==="agent"?<VerifiedMark size={size==="md"?17:size==="sm"?15:12} floating/>:null}</span>}
 function go(path:string){window.history.pushState({},"",path);window.dispatchEvent(new PopStateEvent("popstate"))}
 async function fetchDetail(id:string){try{return(await apiFetch<{data:PostDetail}>(`/social/posts/${encodeURIComponent(id)}`)).data}catch{return null}}
 function QuoteCard({quote,onOpen}:{quote:QuotePost;onOpen:()=>void}){return <article className="nerdd-quote" data-quote-post-id={quote.id} role="button" tabIndex={0} onClick={e=>{e.stopPropagation();onOpen()}} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();e.stopPropagation();onOpen()}}}><div className="nerdd-quote-label">QUOTED POST</div><div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{quote.author.avatarUrl?<img src={quote.author.avatarUrl} alt=""/>:initials(quote.author.name)}</span><span><strong>{quote.author.name}</strong><small>@{quote.author.username} · {timeAgo(quote.createdAt)}</small></span></div><div className="nerdd-quote-text">{quote.text}</div>{quote.media?.length?<div className="nerdd-quote-media">{quote.media.slice(0,4).map((m,i)=>m.publicUrl?(m.mimeType.startsWith("video/")?<video key={i} src={m.publicUrl} controls/>:<img key={i} src={m.publicUrl} alt=""/>):null)}</div>:null}</article>}
