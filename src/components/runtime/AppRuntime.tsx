@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import { Toast } from "@/components/ui/Toast";
 import HashtagEnhancer from "@/components/social/HashtagEnhancer";
-import NerddingInteractionLayer from "@/components/app/NerddingInteractionLayer";
-import NerddingProjectInteractionLayer from "@/components/app/NerddingProjectInteractionLayer";
+import NerddingInteractionRuntime from "@/components/runtime/NerddingInteractionRuntime";
+import HomeProjectRuntime from "@/components/runtime/HomeProjectRuntime";
+import RouteVisualRuntime from "@/components/runtime/RouteVisualRuntime";
 import AgentRouteShield from "@/components/agent/AgentRouteShield";
 import AgentVerificationGate2 from "@/components/agent/AgentVerificationGate2";
 import AgentVerificationRedirect from "@/components/agent/AgentVerificationRedirect";
 import AgentLoginLink from "@/components/agent/AgentLoginLink";
 import AgentPendingNotice from "@/components/agent/AgentPendingNotice";
-import { getAuthToken } from "@/lib/api";
+import { getAuthToken } from "@/services/api";
 import { getNavigationCounts } from "@/services/navigation";
 
 const MESSAGE_CACHE_PREFIX = "nerdding.messages.v2.";
@@ -62,8 +63,7 @@ export default function AppRuntime({ path }: { path: string }) {
 
   useEffect(() => {
     const refreshBadges = async () => {
-      const token = getAuthToken();
-      if (!token) return;
+      if (!getAuthToken()) return;
       try {
         const { notifications, messages } = await getNavigationCounts();
         document.querySelectorAll<HTMLElement>(".nav-item").forEach((item) => {
@@ -84,8 +84,9 @@ export default function AppRuntime({ path }: { path: string }) {
   }, [path]);
 
   return <>
-    <NerddingInteractionLayer />
-    {path === "/" || path.startsWith("/home") ? <NerddingProjectInteractionLayer /> : null}
+    <RouteVisualRuntime path={path} />
+    <NerddingInteractionRuntime />
+    {path === "/" || path.startsWith("/home") ? <HomeProjectRuntime /> : null}
     {path === "/" || path.startsWith("/home") || path.startsWith("/explore") ? <HashtagEnhancer /> : null}
     <AgentRouteShield />
     <AgentVerificationGate2 />
