@@ -63,6 +63,16 @@ body[data-nerdding-enhanced-route="/events"] input,body[data-nerdding-enhanced-r
 .public-footer-links{display:flex;gap:12px}
 body:has(.legal-page) .legal-page:after{content:"n.  nerdding   ·   Build · Prove · Connect · Grow";display:block;max-width:1150px;margin:50px auto 0;padding:20px 0;border-top:1px solid #dfd8cf;color:#81776f;font-size:10px;font-weight:700;letter-spacing:.01em}
 
+/* App shell branding: use the same mark/wordmark visual language as the public brand. */
+.logo-link{display:flex!important;align-items:center!important;gap:9px!important;background:none!important;border:0!important;color:var(--nerdd-ink)!important;font-family:'Space Grotesk',sans-serif!important;font-size:17px!important;font-weight:800!important;letter-spacing:-.04em!important;padding:4px 0!important;text-transform:lowercase!important}
+.logo-link::before{content:"";width:28px;height:28px;border-radius:6px;background:#fff9e9;box-shadow:inset 0 0 0 1px rgba(23,20,17,.08);display:block;flex:0 0 28px;background-image:linear-gradient(45deg,transparent 0 46%,#171411 46% 54%,transparent 54%),linear-gradient(135deg,#171411 0 38%,transparent 38% 62%,#171411 62%)}
+
+/* Slightly compact Home feed while preserving its internal scrolling/interaction model. */
+body[data-app-route="/home"] .home-live-shell{max-width:1060px}
+body[data-app-route="/home"] .home-live-grid{grid-template-columns:minmax(0,1fr) 380px;gap:20px}
+body[data-app-route="/home"] .home-info-rail{width:380px}
+@media(max-width:1100px){body[data-app-route="/home"] .home-live-grid{grid-template-columns:minmax(0,1fr) 360px}body[data-app-route="/home"] .home-info-rail{width:360px}}
+
 @media(max-width:900px){body[data-nerdding-enhanced-route="/charts"] .live-data-route{padding-right:0}body[data-nerdding-enhanced-route="/charts"] .live-data-route:after{position:static;width:100%;margin-top:14px}body[data-nerdding-enhanced-route^="/settings"] .settings-view, .nerdd-proj-page{width:calc(100vw - 28px)!important}}
 `;
 
