@@ -798,11 +798,11 @@ body { overflow-x: hidden; }
 /* The active post is rendered after the feed but must live independently of its scroll. */
 .post-detail-panel {
   position: fixed;
-  top: 28px;
+  top: 92px;
   right: 24px;
   z-index: 100;
-  width: 380px;
-  max-height: calc(100vh - 56px);
+  width: 350px;
+  max-height: calc(100vh - 116px);
   overflow-y: auto;
   overscroll-behavior: contain;
   background: #fbfaf7;
@@ -813,17 +813,58 @@ body { overflow-x: hidden; }
   animation: slideInPanel 0.3s ease-out;
 }
 
+.post-detail-panel-header {
+  position: sticky;
+  top: -24px;
+  z-index: 11;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -24px -24px 16px;
+  padding: 16px 16px 12px 24px;
+  background: #fbfaf7;
+  border-bottom: 1px solid #e4ded5;
+}
+
+.post-detail-panel-label {
+  color: #8b8680;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+}
+
+.post-detail-panel-header h2 {
+  margin: 4px 0 0;
+  color: #1a1a1a;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 19px;
+  line-height: 1.1;
+}
+
+.post-detail-panel-close {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 1px solid #e4ded5;
+  border-radius: 50%;
+  color: #8b8680;
+}
+
+.post-detail-panel-close:hover {
+  background: #f3ede4;
+  color: #1a1a1a;
+}
+
 .post-detail-panel-inner {
   min-width: 0;
 }
 
 .post-detail-panel .post-detail-card-head {
-  position: sticky;
-  top: -24px;
-  z-index: 10;
-  padding: 0 0 16px;
-  background: #fbfaf7;
-  border-bottom: 1px solid #e4ded5;
+  align-items: center;
 }
 
 .post-detail-panel .post-detail-card {
@@ -1303,11 +1344,17 @@ body { overflow-x: hidden; }
   }
 
   .post-detail-panel {
-    top: 20px;
+    top: 84px;
     right: 16px;
     width: 320px;
-    max-height: calc(100vh - 40px);
+    max-height: calc(100vh - 108px);
     padding: 16px;
+  }
+
+  .post-detail-panel-header {
+    top: -16px;
+    margin: -16px -16px 16px;
+    padding: 14px 12px 10px 16px;
   }
 
   .post-detail-panel .post-detail-card-head {
@@ -1334,6 +1381,13 @@ body { overflow-x: hidden; }
     margin-top: 24px;
     overflow: visible;
     padding: 16px;
+  }
+
+  .post-detail-panel-header {
+    position: sticky;
+    top: -16px;
+    margin: -16px -16px 16px;
+    padding: 14px 12px 10px 16px;
   }
 
   .post-detail-panel .post-detail-card-head {
