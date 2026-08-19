@@ -2,10 +2,26 @@
 
 const css = `
 @media (min-width: 1100px) {
-  .app-main { min-width: 0 !important; width: calc(100% - 244px) !important; margin-left: 244px !important; }
+  /* The sidebar is fixed and occupies the 244px visual rail. The topbar is
+     also fixed so it must not participate in the app-shell flex layout. */
+  .app-shell > .topbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 244px !important;
+    right: 0 !important;
+    width: auto !important;
+    margin: 0 !important;
+    z-index: 900 !important;
+  }
 
-  /* The fixed sidebar already owns the 244px left rail. Do not center the
-     entire page-content canvas inside the remaining viewport. */
+  .app-main {
+    min-width: 0 !important;
+    width: calc(100% - 244px) !important;
+    margin-left: 244px !important;
+  }
+
+  /* The fixed sidebar already owns the 244px left rail. Keep the content
+     canvas inside the remaining main column and avoid a second centering pass. */
   .app-main > .page-content {
     width: 100% !important;
     max-width: none !important;
@@ -15,8 +31,6 @@ const css = `
     overflow-x: clip !important;
   }
 
-  /* Remove the second global centering pass. Individual routes still own
-     their internal widths/grids. */
   .app-main > .page-content > .view {
     width: 100% !important;
     max-width: 1320px !important;
@@ -64,7 +78,7 @@ const css = `
   }
 }
 
-.topbar { position: sticky !important; top: 0 !important; z-index: 900 !important; }
+.topbar { z-index: 900 !important; }
 .page-content { position: relative; z-index: 1; }
 .home-live-root, .home-live-grid, .home-feed, .post-card { min-width: 0; }
 
@@ -86,7 +100,13 @@ const css = `
 }
 
 @media (max-width: 760px) {
-  .topbar { position: sticky !important; }
+  .app-shell > .topbar {
+    position: sticky !important;
+    left: auto !important;
+    right: auto !important;
+    width: auto !important;
+  }
+  .topbar { z-index: 900 !important; }
   .app-main > .page-content { padding: 20px 15px 80px !important; }
   body[data-app-route="/home"] .home-live-grid { width: 100% !important; }
 }
