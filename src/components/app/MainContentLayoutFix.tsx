@@ -32,17 +32,10 @@ const css = `
     width: 100% !important;
   }
 
-  /* The active-post side surface is an overlay; it must not push or shrink the feed itself. */
+  /* The home feed owns the right column and swaps its info rail for the active post. */
   body[data-nerdding-enhanced-route="/home"] .home-live-grid.with-active {
     grid-template-columns: minmax(0, 1fr) 360px !important;
     padding-right: 0 !important;
-  }
-
-  body[data-nerdding-enhanced-route="/home"] .home-active-post {
-    right: 24px !important;
-    top: 84px !important;
-    width: min(520px, calc(100vw - 56px)) !important;
-    height: calc(100dvh - 108px) !important;
   }
 
   .right-rail {
