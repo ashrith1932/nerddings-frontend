@@ -46,7 +46,7 @@ function QuoteCard({ quote }: { quote: QuotePost }) {
 }
 
 function BuildCard({ build, user }: { build: Build; user: User }) {
-  return <article className="home-post profile-build-card profile-post-row" data-post-id={build.id} onClick={() => openProfilePost(build.id)}>
+  return <article className="home-post" data-post-id={build.id} onClick={() => openProfilePost(build.id)}>
     <div className="home-post-head">
       <button className="home-author" onClick={(event) => { event.stopPropagation(); nav(`/profile/${encodeURIComponent(user.username)}`); }}>
         <Avatar user={user} />
@@ -78,22 +78,12 @@ function AddAgentModal({ onClose, onDone }: { onClose: () => void; onDone: () =>
 }
 
 const profileCss = `
-.profile-content-grid{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(280px,350px)!important;gap:24px!important;align-items:start!important;width:100%!important;min-width:0!important}
+.profile-content-grid{display:grid!important;grid-template-columns:minmax(0,1fr) 360px!important;column-gap:24px!important;align-items:start!important;width:min(100%,1320px)!important;margin:0 auto!important;min-width:0!important}
 .profile-section-content{min-width:0!important;width:100%!important}
 .profile-right-rail{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;align-self:start!important;width:100%!important;min-width:0!important}
 .profile-post-detail-slot{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
 .profile-right-rail>.profile-affiliations-rail{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
 
-/* Legacy .profile-post-row is a flex row. Override only that legacy layout so the Home post layout wins. */
-.profile-build-card.profile-post-row{display:block!important;align-items:initial!important;justify-content:initial!important;gap:initial!important;width:100%!important;box-sizing:border-box!important;padding:15px 16px 8px!important;margin:0 0 11px!important;border:1px solid var(--line,#ddd6cc)!important;border-radius:12px!important;background:var(--card,#fff)!important;text-align:left!important}
-.profile-build-card.profile-post-row span{min-width:0!important;overflow:visible!important;text-overflow:clip!important;white-space:normal!important;color:inherit!important;font-size:inherit!important}
-.profile-build-card.profile-post-row small{color:inherit!important;font-family:inherit!important;font-size:inherit!important}
-.profile-build-card.profile-post-row .home-author>span{display:flex!important;flex-direction:column!important}
-.profile-build-card.profile-post-row .home-author small{font-size:10px!important;color:#938980!important;margin-top:2px!important}
-.profile-build-card.profile-post-row .home-avatar{display:inline-grid!important;place-items:center!important;flex:0 0 42px!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;overflow:hidden!important;border-radius:50%!important}
-.profile-build-card.profile-post-row .home-avatar img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
-
-/* Profile active detail has its own shell; it deliberately does not use home-active-post/home-modal classes. */
 .profile-active-post{display:block!important;position:static!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow:hidden!important;border:1px solid var(--line,#ddd6cc)!important;border-radius:12px!important;background:var(--card,#fff)!important;box-shadow:0 5px 18px rgba(31,27,24,.05)!important;animation:profile-panel-in .3s ease-out}
 .profile-active-post .post-detail-panel{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;margin:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important}
 .profile-active-post .post-detail-panel-header{height:60px!important;min-height:60px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 15px!important;border-bottom:1px solid var(--line,#ddd6cc)!important;background:var(--card,#fff)!important;position:sticky!important;top:0!important;z-index:2!important}
@@ -105,7 +95,7 @@ const profileCss = `
 .profile-active-post .post-detail-card{padding:12px!important;border:1px solid var(--line,#ddd6cc)!important;border-radius:10px!important;background:var(--card,#fff)!important;box-shadow:none!important}
 .profile-active-post .post-detail-comments{margin-top:14px!important}
 @keyframes profile-panel-in{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
-@media(max-width:920px){.profile-content-grid{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}.profile-active-post .post-detail-panel-inner{max-height:none!important}}
+@media(max-width:920px){.profile-content-grid{grid-template-columns:minmax(0,1fr)!important;column-gap:0!important;gap:16px!important}.profile-active-post .post-detail-panel-inner{max-height:none!important}}
 `;
 
 export default function ProfileSectionTabs({ username }: { username: string }) {
