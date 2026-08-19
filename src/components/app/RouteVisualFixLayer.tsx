@@ -38,9 +38,42 @@ export default function RouteVisualFixLayer() {
     };
     document.addEventListener("click", onDocumentClick);
 
+    const wrapProfilePosts = () => {
+      const containers = Array.from(document.querySelectorAll<HTMLElement>(".profile-section-content"));
+      containers.forEach((container) => {
+        const existing = container.querySelector<HTMLElement>(":scope > .profile-posts-scroll");
+        const directPosts = Array.from(container.children).filter((child) => child.classList.contains("home-post"));
+
+        if (!directPosts.length) {
+          if (existing) {
+            while (existing.firstChild) container.insertBefore(existing.firstChild, existing);
+            existing.remove();
+          }
+          return;
+        }
+
+        const wrapper = existing ?? document.createElement("div");
+        wrapper.className = "profile-posts-scroll";
+        if (!existing) {
+          const firstPost = directPosts[0];
+          container.insertBefore(wrapper, firstPost);
+        }
+
+        const directChildren = Array.from(container.children);
+        const startIndex = directChildren.indexOf(wrapper);
+        const afterWrapper = Array.from(container.children).slice(startIndex + 1);
+        afterWrapper.forEach((child) => wrapper.appendChild(child));
+      });
+    };
+
+    wrapProfilePosts();
+    const observer = new MutationObserver(() => wrapProfilePosts());
+    observer.observe(document.body, { childList: true, subtree: true });
+
     return () => {
       window.removeEventListener("popstate", handleRouteChange);
       document.removeEventListener("click", onDocumentClick);
+      observer.disconnect();
     };
   }, [mounted]);
 
@@ -74,6 +107,19 @@ export default function RouteVisualFixLayer() {
         min-width: 0 !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
+      }
+      .profile-section-content {
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+      .profile-posts-scroll {
+        min-width: 0 !important;
+        max-height: calc(100dvh - 170px) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        overscroll-behavior: contain !important;
+        padding-right: 4px !important;
+        scrollbar-gutter: stable !important;
       }
       .profile-right-rail {
         display: grid !important;
@@ -146,6 +192,11 @@ export default function RouteVisualFixLayer() {
         .home-active-post,
         .profile-active-post {
           max-width: 100% !important;
+        }
+        .profile-posts-scroll {
+          max-height: none !important;
+          overflow: visible !important;
+          padding-right: 0 !important;
         }
       }
     `}</style>
