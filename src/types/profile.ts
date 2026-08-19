@@ -6,6 +6,11 @@ export type ProfileUser = {
   bio?: string | null;
   location?: string | null;
   accountType?: "user" | "agent" | string;
+  coverUrl?: string | null;
+  profileLogoUrl?: string | null;
+  coverPositionX?: number;
+  coverPositionY?: number;
+  checkmarkType?: string | null;
 };
 
 export type ProfilePost = {
