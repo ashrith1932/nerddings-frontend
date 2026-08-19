@@ -1,14 +1,13 @@
 "use client";
 import { useEffect } from "react";
-import { apiFetch } from "@/lib/api";
+import { getHomeProjectAssignments } from "@/services/homeApi";
 
-export default function NerddingProjectInteractionLayer(){
+export default function HomeProjectRuntime(){
   useEffect(()=>{
     const assign=async()=>{
       if(window.location.pathname!=="/home"&&window.location.pathname!=="/")return;
       try{
-        const response=await apiFetch<any>("/social/feed?mode=for-you");
-        const posts=response.data??[];
+        const posts=await getHomeProjectAssignments();
         document.querySelectorAll<HTMLElement>(".home-post").forEach((post,index)=>{
           const project=posts[index]?.project;
           const button=post.querySelector<HTMLElement>(".home-project");
