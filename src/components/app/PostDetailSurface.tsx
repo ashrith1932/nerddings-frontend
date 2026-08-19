@@ -81,15 +81,23 @@ if (typeof window !== "undefined") {
       const postCard = target?.closest<HTMLElement>(".home-post[data-post-id]");
       if (postCard?.dataset.postId) win[key] = postCard.dataset.postId;
 
-      const quote = target?.closest<HTMLElement>(".home-modal .nerdd-quote[data-quote-post-id]");
+      const quote = target?.closest<HTMLElement>(".home-modal .nerdd-quote");
       if (!quote) return;
-      const quotedId = quote.dataset.quotePostId;
-      if (!quotedId) return;
       if (target.closest("video")) return;
+      const quotedId = quote.dataset.quotePostId;
+      const eventName = target.closest(".profile-active-post") ? "nerdding:open-profile-post" : "nerdding:open-post";
+      const dispatch = (postId?: string) => { if (postId) window.dispatchEvent(new CustomEvent(eventName, { detail: { postId } })); };
+      if (quotedId) {
+        event.preventDefault();
+        event.stopPropagation();
+        dispatch(quotedId);
+        return;
+      }
+      const activeId = win[key] || document.querySelector<HTMLElement>(".home-post.home-post-selected[data-post-id]")?.dataset.postId;
+      if (!activeId) return;
       event.preventDefault();
       event.stopPropagation();
-      const eventName = target.closest(".profile-active-post") ? "nerdding:open-profile-post" : "nerdding:open-post";
-      window.dispatchEvent(new CustomEvent(eventName, { detail: { postId: quotedId } }));
+      void apiFetch<{ data: Post }>(`/social/posts/${encodeURIComponent(activeId)}`).then((response) => dispatch(response.data.quotePost?.id));
     }, true);
   }
 }
@@ -110,25 +118,12 @@ export default function PostDetailSurface({ postId, onClose, isPanel = false }: 
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
-
   const load = async () => { setLoading(true); setError(""); try { const response = await apiFetch<{ data: Post }>(`/social/posts/${encodeURIComponent(postId)}`); setPost(response.data); setSaved(Boolean(response.data.saves && response.data.saves > 0)); } catch (errorValue) { setError(errorValue instanceof Error ? errorValue.message : "Post could not be loaded"); } finally { setLoading(false); } };
   useEffect(() => { void load(); }, [postId]);
-
   const addComment = async (parentId: string | null, body: string) => { if (!getSavedUser() || busy) return; setBusy(true); try { await apiFetch(`/social/posts/${encodeURIComponent(postId)}/comments`, { method: "POST", body: JSON.stringify({ body, parentId }) }); await load(); } catch (errorValue) { setError(errorValue instanceof Error ? errorValue.message : "Comment could not be posted"); } finally { setBusy(false); } };
-
-  if (loading) {
-    if (!isPanel) return <div className="nerdd-route-surface"><div className="skeleton-block skeleton-hero" /></div>;
-    return <section className="home-active-post" role="dialog" aria-label="Active post"><style>{homePanelStyles}</style><div className="home-modal"><header className="home-modal-head"><div><span>POST DETAIL</span><h2>Active post</h2></div>{onClose && <button onClick={onClose} aria-label="Close post"><X size={18} /></button>}</header><div className="home-modal-scroll"><div className="skeleton-block skeleton-hero" /></div></div></section>;
-  }
-
-  if (!post) {
-    if (!isPanel) return <div className="nerdd-route-surface"><div className="empty-state"><strong>Post could not be loaded.</strong><span>{error}</span><button className="outline-button" onClick={() => void load()}>Try again</button></div></div>;
-    return <section className="home-active-post" role="dialog" aria-label="Active post"><style>{homePanelStyles}</style><div className="home-modal"><header className="home-modal-head"><div><span>POST DETAIL</span><h2>Active post</h2></div>{onClose && <button onClick={onClose} aria-label="Close post"><X size={18} /></button>}</header><div className="home-modal-scroll"><div className="empty-state"><strong>Post could not be loaded.</strong><span>{error}</span><button className="outline-button" onClick={() => void load()}>Try again</button></div></div></div></section>;
-  }
-
+  if (loading) { if (!isPanel) return <div className="nerdd-route-surface"><div className="skeleton-block skeleton-hero" /></div>; return <section className="home-active-post" role="dialog" aria-label="Active post"><style>{homePanelStyles}</style><div className="home-modal"><header className="home-modal-head"><div><span>POST DETAIL</span><h2>Active post</h2></div>{onClose && <button onClick={onClose} aria-label="Close post"><X size={18} /></button>}</header><div className="home-modal-scroll"><div className="skeleton-block skeleton-hero" /></div></div></section>; }
+  if (!post) { if (!isPanel) return <div className="nerdd-route-surface"><div className="empty-state"><strong>Post could not be loaded.</strong><span>{error}</span><button className="outline-button" onClick={() => void load()}>Try again</button></div></div>; return <section className="home-active-post" role="dialog" aria-label="Active post"><style>{homePanelStyles}</style><div className="home-modal"><header className="home-modal-head"><div><span>POST DETAIL</span><h2>Active post</h2></div>{onClose && <button onClick={onClose} aria-label="Close post"><X size={18} /></button>}</header><div className="home-modal-scroll"><div className="empty-state"><strong>Post could not be loaded.</strong><span>{error}</span><button className="outline-button" onClick={() => void load()}>Try again</button></div></div></div></section>; }
   const content = <><article className="home-modal-content"><UserButton user={post.author} /><p className="home-modal-text">{post.text}</p>{post.quotePost ? <QuoteCard quote={post.quotePost} isPanel={isPanel} /> : null}{post.media?.length ? <div className="home-modal-media">{post.media.slice(0,4).map((media,index) => media.publicUrl ? (media.mimeType.startsWith("video/") ? <video key={index} src={media.publicUrl} controls /> : <img key={index} src={media.publicUrl} alt="" loading="lazy" />) : null)}</div> : null}{post.project && <button className="home-project" onClick={() => window.dispatchEvent(new CustomEvent("nerdding:open-project", { detail: { slug: post.project?.slug } }))}><span><strong>{post.project.name}</strong><small>{post.project.stage ?? "Project"}</small></span></button>}{post.linkUrl ? <a className="home-link" href={post.linkUrl} target="_blank" rel="noreferrer"><Link2 size={14} />{post.linkUrl.replace(/^https?:\/\//, "")}</a> : null}<div className="home-modal-stats"><span>{post.likes} likes</span><span>{post.comments} comments</span><span>{post.reposts} nerddings</span></div></article><section><div className="home-section-label">COMMENTS</div><div className="home-comment-compose"><Avatar user={getSavedUser() ?? { id:"guest", name:"Guest", username:"guest" }} size="xs" /><input value={text} onChange={(event) => setText(event.target.value)} placeholder="Write a comment or reply..." onKeyDown={(event) => { if (event.key === "Enter" && text.trim()) { const body = text.trim(); setText(""); void addComment(null, body); } }} /><button disabled={!text.trim() || busy} onClick={() => { const body = text.trim(); setText(""); void addComment(null, body); }}><Send size={14} /></button></div>{post.commentsTree?.length ? <ThreadedCommentTree comments={post.commentsTree} onReply={addComment} /> : <div className="home-no-comments"><MessageCircle size={17} /> No comments yet.</div>}</section></>;
-
   if (isPanel) return <section className="home-active-post" role="dialog" aria-label="Active post"><style>{homePanelStyles}</style><div className="home-modal"><header className="home-modal-head"><div><span>POST DETAIL</span><h2>Active post</h2></div>{onClose && <button onClick={onClose} aria-label="Close post"><X size={18} /></button>}</header><div className="home-modal-scroll">{content}</div></div></section>;
-
   return <div className="nerdd-route-surface"><div className="view post-detail-view">{!onClose && <button className="back-button" onClick={() => nav("/home")}><ArrowLeft size={15} /> Back to feed</button>}<article className="post-detail-card"><div className="post-detail-card-head"><UserButton user={post.author} /><span className="post-detail-time">{new Date(post.createdAt).toLocaleString()}</span></div><p className="post-detail-copy">{post.text}</p>{post.quotePost ? <QuoteCard quote={post.quotePost} isPanel={false} /> : null}{post.media?.length ? <div className="post-detail-media">{post.media.slice(0,4).map((media,index) => media.publicUrl ? (media.mimeType.startsWith("video/") ? <video key={index} src={media.publicUrl} controls /> : <img key={index} src={media.publicUrl} alt="" loading="lazy" />) : null)}</div> : null}<div className="post-detail-actionbar"><div><span title="Likes"><Heart size={15} /> {post.likes}</span><span title="Comments"><MessageCircle size={15} /> {post.comments}</span><span title="Amplifies"><Activity size={15} /> {post.reposts}</span></div><div><span title="Views"><Eye size={15} /> {post.views ?? 0}</span><button title="Save" className={saved ? "action-active" : ""} onClick={async () => { try { const response = await apiFetch<{ data: { active: boolean } }>(`/posts/${post.id}/save`, { method: "POST" }); setSaved(response.data.active); await load(); } catch { setError("Post could not be saved"); } }}><Bookmark size={15} fill={saved ? "currentColor" : "none"} /> Save</button></div></div></article></div></div>;
 }
