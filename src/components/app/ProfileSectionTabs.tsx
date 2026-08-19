@@ -386,7 +386,27 @@ export default function ProfileSectionTabs({ username }: { username: string }) {
         ),
     [data],
   );
-  if (!data) return loading ? <div className="profile-tabs-loading" aria-label="Loading profile sections"><div className="profile-tabs-loading-nav"><i /><i /><i /><i /></div><div className="profile-tabs-loading-grid"><div><i /><i /><i /></div><aside><i /><i /><i /></aside></div></div> : <div className="profile-tab-empty profile-tabs-error"><Activity size={20} /><strong>Profile sections unavailable</strong><span>{error || "Try refreshing this profile."}</span></div>;
+  if (!data)
+    return (
+      <section className="profile-section-tabs-wrap profile-tabs-shell-loading">
+        <nav className="profile-section-tabs" aria-label="Profile sections">
+          {(["Build Notes", "Projects", "Followers", "Following"] as const).map((label) => (
+            <button key={label} type="button" disabled>
+              <span>{label}</span>
+              <i className="profile-count-loader" aria-label="Loading count" />
+            </button>
+          ))}
+        </nav>
+        {loading ? (
+          <div className="profile-tabs-loading-grid" aria-label="Loading profile sections">
+            <div><i /><i /><i /></div>
+            <aside><i /><i /><i /></aside>
+          </div>
+        ) : (
+          <div className="profile-tab-empty profile-tabs-error"><Activity size={20} /><strong>Profile sections unavailable</strong><span>{error || "Try refreshing this profile."}</span></div>
+        )}
+      </section>
+    );
   const people =
     tab === "followers" ? (data.followers ?? []) : (data.following ?? []);
   const own =

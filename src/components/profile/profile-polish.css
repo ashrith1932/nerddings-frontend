@@ -64,6 +64,8 @@
 .profile-section-tabs button:hover{color:var(--ink);background:color-mix(in srgb,var(--accent) 5%,transparent);}
 .profile-section-tabs button.active{border-bottom-color:var(--accent);color:var(--ink);}
 .profile-section-tabs button b{color:var(--subtle);font:600 10px 'DM Mono',monospace;}
+.profile-count-loader{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:profile-count-spin .8s linear infinite;}
+.profile-section-tabs button:disabled{opacity:1;cursor:default;}
 .profile-tabs-loading{display:grid;gap:18px;margin-top:26px;}
 .profile-tabs-loading-nav{display:flex;gap:12px;padding:0 14px 13px;border-bottom:1px solid var(--line);}
 .profile-tabs-loading-nav i{display:block;width:96px;height:16px;border-radius:6px;background:linear-gradient(90deg,#e9e3db,#f7f3ed,#e9e3db);background-size:200% 100%;animation:profile-shimmer 1.2s infinite;}
@@ -73,6 +75,7 @@
 .profile-tabs-loading-grid aside i{height:42px;}
 .profile-tabs-error{margin-top:18px;}
 @keyframes profile-shimmer{to{background-position:-200% 0;}}
+@keyframes profile-count-spin{to{transform:rotate(360deg);}}
 .profile-content-grid{display:grid;grid-template-columns:minmax(0,1fr) 290px;align-items:start;gap:20px;margin-top:18px;}
 .profile-section-content{min-width:0;}
 .profile-affiliations-rail{position:sticky;top:94px;min-width:0;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--card);box-shadow:0 5px 18px rgba(23,20,17,.035);}
