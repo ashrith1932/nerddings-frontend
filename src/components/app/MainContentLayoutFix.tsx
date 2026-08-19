@@ -2,8 +2,8 @@
 
 const css = `
 @media (min-width: 1100px) {
-  /* The sidebar is fixed and occupies the 244px visual rail. The topbar is
-     also fixed so it must not participate in the app-shell flex layout. */
+  /* Fixed sidebar + fixed topbar define the shell. The app-main column
+     starts below the 75px topbar instead of sliding underneath it. */
   .app-shell > .topbar {
     position: fixed !important;
     top: 0 !important;
@@ -18,6 +18,7 @@ const css = `
     min-width: 0 !important;
     width: calc(100% - 244px) !important;
     margin-left: 244px !important;
+    padding-top: 75px !important;
   }
 
   /* The fixed sidebar already owns the 244px left rail. Keep the content
@@ -107,6 +108,9 @@ const css = `
     width: auto !important;
   }
   .topbar { z-index: 900 !important; }
+  .app-main {
+    padding-top: 0 !important;
+  }
   .app-main > .page-content { padding: 20px 15px 80px !important; }
   body[data-app-route="/home"] .home-live-grid { width: 100% !important; }
 }
