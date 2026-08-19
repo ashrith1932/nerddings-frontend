@@ -6,6 +6,9 @@ import AppShell from "@/components/shell/AppShell";
 import AppRouter from "@/components/pages/AppRouter";
 import AppRuntime from "@/components/runtime/AppRuntime";
 import "@/styles/shell.css";
+import "@/styles/profile.css";
+import "@/styles/settings.css";
+import "@/styles/your-nerddings.css";
 
 export function NerddingApp() {
   const [path, setPath] = useState(() => typeof window === "undefined" ? "/home" : window.location.pathname);
