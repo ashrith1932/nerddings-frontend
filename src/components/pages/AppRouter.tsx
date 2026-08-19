@@ -25,21 +25,15 @@ export default function AppRouter({ path }: Props) {
   const [activePostId, setActivePostId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!path.startsWith("/explore")) {
-      setActivePostId(null);
-      return;
-    }
-    const onOpen = (event: Event) => {
-      const id = (event as CustomEvent<{ postId?: string }>).detail?.postId;
-      if (id) setActivePostId(id);
-    };
+    if (!path.startsWith("/explore")) { setActivePostId(null); return; }
+    const onOpen = (event: Event) => { const id = (event as CustomEvent<{ postId?: string }>).detail?.postId; if (id) setActivePostId(id); };
     window.addEventListener("nerdding:open-post", onOpen);
     return () => window.removeEventListener("nerdding:open-post", onOpen);
   }, [path]);
 
   let content: React.ReactNode;
   if (path.startsWith("/profile/")) content = <ProfilePage username={slug} />;
-  else if (path.startsWith("/project/") && path !== "/project/new") content = <ProjectDetailPage slug={slug} />;
+  else if ((path.startsWith("/project/") || path.startsWith("/projects/")) && path !== "/project/new") content = <ProjectDetailPage slug={slug} />;
   else if (path === "/project/new") content = <ProjectCreatePage />;
   else if (path.startsWith("/post/")) content = <ActivePost postId={slug} />;
   else if (path.startsWith("/settings")) content = <SettingsPage />;
