@@ -795,6 +795,54 @@ body { overflow-x: hidden; }
   gap: 16px;
 }
 
+/* The active post is rendered after the feed but must live independently of its scroll. */
+.post-detail-panel {
+  position: fixed;
+  top: 28px;
+  right: 24px;
+  z-index: 100;
+  width: 380px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #fbfaf7;
+  border: 1px solid #e4ded5;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  animation: slideInPanel 0.3s ease-out;
+}
+
+.post-detail-panel-inner {
+  min-width: 0;
+}
+
+.post-detail-panel .post-detail-card-head {
+  position: sticky;
+  top: -24px;
+  z-index: 10;
+  padding: 0 0 16px;
+  background: #fbfaf7;
+  border-bottom: 1px solid #e4ded5;
+}
+
+.post-detail-panel .post-detail-card {
+  margin-bottom: 20px;
+}
+
+.composer-inline {
+  align-items: center;
+  gap: 12px;
+}
+
+.composer-inline > .avatar-xs {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  font-size: 10px;
+  flex: 0 0 32px;
+}
+
 /* Side Panel (Post Detail) */
 .nerdding-side-panel {
   position: sticky;
@@ -1253,6 +1301,18 @@ body { overflow-x: hidden; }
     top: 20px;
     padding: 16px;
   }
+
+  .post-detail-panel {
+    top: 20px;
+    right: 16px;
+    width: 320px;
+    max-height: calc(100vh - 40px);
+    padding: 16px;
+  }
+
+  .post-detail-panel .post-detail-card-head {
+    top: -16px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1265,6 +1325,19 @@ body { overflow-x: hidden; }
     position: static;
     top: auto;
     margin-top: 24px;
+  }
+
+  .post-detail-panel {
+    position: static;
+    width: 100%;
+    max-height: none;
+    margin-top: 24px;
+    overflow: visible;
+    padding: 16px;
+  }
+
+  .post-detail-panel .post-detail-card-head {
+    top: -16px;
   }
 
   .post-detail-media-3 {
