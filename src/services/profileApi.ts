@@ -1,5 +1,4 @@
-import { apiFetch } from "@/services/api";
-import { getSavedUser } from "@/services/api";
+import { apiFetch, getSavedUser } from "@/services/api";
 import type { ProfileAffiliation, ProfilePerson, ProfilePost, ProfileProject, ProfileSnapshot, ProfileUser } from "@/types/profile";
 
 export type { ProfileAffiliation, ProfilePerson, ProfilePost, ProfileProject, ProfileSnapshot, ProfileUser } from "@/types/profile";
@@ -22,7 +21,12 @@ function normalizeUser(value: any): ProfileUser | null {
     bio: value.bio ?? null,
     location: value.location ?? null,
     accountType: value.accountType ?? "user",
-  };
+    coverUrl: value.coverUrl ?? null,
+    profileLogoUrl: value.profileLogoUrl ?? null,
+    coverPositionX: numberValue(value.coverPositionX ?? 50),
+    coverPositionY: numberValue(value.coverPositionY ?? 50),
+    checkmarkType: value.checkmarkType ?? null,
+  } as ProfileUser;
 }
 
 function normalizePost(value: any): ProfilePost | null {
