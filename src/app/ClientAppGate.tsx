@@ -1,81 +1,242 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { usePathname } from "next/navigation";
-import LiveMessagesRoute from "@/components/app/LiveMessagesRoute";
-import LiveNotificationsRoute from "@/components/app/LiveNotificationsRoute";
-import LiveChartsRoute from "@/components/app/LiveChartsRoute";
-import LiveFundraisingRoute from "@/components/app/LiveFundraisingRoute";
-import LiveSearchRoute from "@/components/app/LiveSearchRoute";
-import DocumentationSurface from "@/components/public/DocumentationSurface";
+import { NerddingApp } from "@/components/layout/NerddingApp";
+import { ProfileSurface, SettingsSurface } from "@/components/app/NerddingRouteSurfaces";
+import ProjectDetailSurface from "@/components/app/ProjectDetailSurface";
 import PostDetailSurface from "@/components/app/PostDetailSurface";
-import ProfilePostPopupLayer from "@/components/app/ProfilePostPopupLayer";
+import ProjectSurface from "@/components/app/ProjectSurface";
 import NerddingInteractionLayer from "@/components/app/NerddingInteractionLayer";
 import NerddingProjectInteractionLayer from "@/components/app/NerddingProjectInteractionLayer";
+import ProfilePostPopupLayer from "@/components/app/ProfilePostPopupLayer";
+import RouteVisualFixLayer from "@/components/app/RouteVisualFixLayer";
+import MainContentLayoutFix from "@/components/app/MainContentLayoutFix";
+import { LiveHomeRoute, LiveMessagesRoute, LiveNotificationsRoute, LiveChartsRoute, LiveFundraisingRoute, LiveSearchRoute } from "@/components/app/LiveDataRoutes";
+import { ExploreRoute, EventsRoute } from "@/components/app/DiscoveryRoutes";
+import DocumentationSurface, { DocumentationSettingsCard } from "@/components/public/DocumentationSurface";
+import SiteFooter from "@/components/app/SiteFooter";
+import FeedUpdatePrompt from "@/components/social/FeedUpdatePrompt";
 import HashtagEnhancer from "@/components/social/HashtagEnhancer";
-import AgentRouteShield from "@/components/agent/AgentRouteShield";
+import "@/components/app/nerdding-route-surfaces.css";
 import AgentVerificationGate2 from "@/components/agent/AgentVerificationGate2";
 import AgentVerificationRedirect from "@/components/agent/AgentVerificationRedirect";
+import AgentRouteShield from "@/components/agent/AgentRouteShield";
 import AgentLoginLink from "@/components/agent/AgentLoginLink";
 import AgentPendingNotice from "@/components/agent/AgentPendingNotice";
-import RouteVisualFixLayer from "@/components/app/RouteVisualFixLayer";
-import SiteFooter from "@/components/app/SiteFooter";
-import { getSavedUser } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+
+const MESSAGE_CACHE_PREFIX = "nerdding.messages.v2.";
+
+function repairMessageCache() {
+  if (typeof window === "undefined") return;
+  const remove: string[] = [];
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    if (!key?.startsWith(MESSAGE_CACHE_PREFIX)) continue;
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) remove.push(key);
+    } catch {
+      remove.push(key);
+    }
+  }
+  remove.forEach((key) => window.localStorage.removeItem(key));
+}
+
+function AppSkeleton() {
+  return (
+    <div className="client-app-skeleton" aria-hidden="true">
+      <style>{`.client-app-skeleton{min-height:100dvh;display:grid;grid-template-columns:244px minmax(0,1fr);background:#f8f6f2}.client-app-skeleton-sidebar{padding:24px 14px;border-right:1px solid #e4ded5;background:#fbfaf7}.client-app-skeleton-logo,.client-app-skeleton-nav,.client-app-skeleton-topbar,.client-app-skeleton-card{background:#e8e3dc;position:relative;overflow:hidden}.client-app-skeleton-logo{height:30px;width:125px;border-radius:8px;margin:3px 10px 28px}.client-app-skeleton-nav{height:40px;border-radius:10px;margin:7px 4px}.client-app-skeleton-topbar{height:66px;border-bottom:1px solid #e4ded5;background:#fbfaf7}.client-app-skeleton-content{width:min(1150px,calc(100% - 48px));margin:28px auto;display:grid;gap:14px}.client-app-skeleton-card{height:150px;border-radius:15px}.client-app-skeleton-card.large{height:250px}.client-app-skeleton-logo:after,.client-app-skeleton-nav:after,.client-app-skeleton-topbar:after,.client-app-skeleton-card:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:client-app-shimmer 1.15s infinite}@keyframes client-app-shimmer{to{transform:translateX(100%)}}@media(max-width:760px){.client-app-skeleton{display:block}.client-app-skeleton-sidebar{display:none}.client-app-skeleton-content{width:calc(100% - 20px);margin:18px auto}}`}</style>
+      <aside className="client-app-skeleton-sidebar">
+        <div className="client-app-skeleton-logo" />
+        {Array.from({ length: 9 }, (_, i) => (
+          <div className="client-app-skeleton-nav" key={i} />
+        ))}
+      </aside>
+      <main>
+        <div className="client-app-skeleton-topbar" />
+        <div className="client-app-skeleton-content">
+          <div className="client-app-skeleton-card large" />
+          <div className="client-app-skeleton-card" />
+          <div className="client-app-skeleton-card" />
+        </div>
+      </main>
+    </div>
+  );
+}
 
 export default function ClientAppGate() {
-  const pathname = usePathname();
-  const profile = Boolean(pathname?.startsWith("/profile/"));
-  const [activePostId, setActivePostId] = useState<string | null>(null);
-  const [footerTarget, setFooterTarget] = useState<HTMLElement | null>(null);
+  const [ready, setReady] = useState(false);
+  const [path, setPath] = useState(() => (typeof window === "undefined" ? "/" : window.location.pathname));
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-  const [searchParams] = useState("");
-  const hasActivePost = Boolean(activePostId);
-
-  const documentation = false;
-  const documentationSlug = "";
-  const messages = false;
-  const notifications = false;
-  const charts = false;
-  const fundraising = false;
-  const search = false;
-  const newProject = false;
+  const [footerTarget, setFooterTarget] = useState<HTMLElement | null>(null);
+  const [activePostId, setActivePostId] = useState<string | null>(null);
 
   useEffect(() => {
-    setPortalTarget(document.getElementById("app-content") ?? document.body);
-    setFooterTarget(document.getElementById("site-footer") ?? null);
+    repairMessageCache();
+    const onPop = () => setPath(window.location.pathname);
+    window.addEventListener("popstate", onPop);
+    setReady(true);
+    return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   useEffect(() => {
-    const handleOpenPost = (event: Event) => {
-      const detail = (event as CustomEvent).detail;
-      if (detail?.postId && !profile) setActivePostId(detail.postId);
+    const handleOpenPost = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.postId) setActivePostId(detail.postId);
     };
     window.addEventListener("nerdding:open-post", handleOpenPost);
     return () => window.removeEventListener("nerdding:open-post", handleOpenPost);
-  }, [profile]);
+  }, []);
 
-  return <>
-    {portalTarget && createPortal(<div className="client-app-overlay-root">
-      {newProject && <div />}
-      {messages && <LiveMessagesRoute />}
-      {notifications && <LiveNotificationsRoute />}
-      {charts && <LiveChartsRoute />}
-      {fundraising && <LiveFundraisingRoute />}
-      {search && <LiveSearchRoute query={searchParams} />}
-      {documentation && <DocumentationSurface slug={documentationSlug} />}
-      {hasActivePost && !profile && <PostDetailSurface postId={activePostId} onClose={() => setActivePostId(null)} isPanel={true} />}
-    </div>, portalTarget)}
-    {footerTarget && createPortal(<SiteFooter />, footerTarget)}
-    {!profile && <ProfilePostPopupLayer />}
-    {!profile && <NerddingInteractionLayer />}
-    <NerddingProjectInteractionLayer />
-    <HashtagEnhancer />
-    <AgentRouteShield />
-    <AgentVerificationGate2 />
-    <AgentVerificationRedirect />
-    <AgentLoginLink />
-    <AgentPendingNotice />
-    <RouteVisualFixLayer />
-  </>;
+  useEffect(() => {
+    if (!ready) return;
+    const target = document.querySelector(".app-main .page-content") as HTMLElement | null;
+    const footer = document.querySelector(".app-main") as HTMLElement | null;
+    setPortalTarget(target);
+    setFooterTarget(footer);
+    document.body.dataset.nerddingEnhancedRoute = path;
+    return () => {
+      delete document.body.dataset.nerddingEnhancedRoute;
+    };
+  }, [ready, path]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const refresh = async () => {
+      const status = document.querySelector<HTMLElement>(".status-chip");
+      if (status) status.style.display = "none";
+      document.querySelectorAll<HTMLElement>(".nav-item b").forEach((badge) => {
+        badge.style.display = "none";
+      });
+      const token = window.localStorage.getItem("nerdding.token");
+      if (!token) return;
+      try {
+        const [notifications, messages] = await Promise.allSettled([
+          apiFetch<any>("/notifications"),
+          apiFetch<any>("/social/messages/unread-count"),
+        ]);
+        const counts = {
+          Messages:
+            messages.status === "fulfilled"
+              ? Number(messages.value?.data?.unreadCount ?? 0) + Number(messages.value?.data?.pendingRequests ?? 0)
+              : 0,
+          Notifications:
+            notifications.status === "fulfilled" ? Number(notifications.value?.unreadCount ?? 0) : 0,
+        };
+        document.querySelectorAll<HTMLElement>(".nav-item").forEach((item) => {
+          const label = item.querySelector("span")?.textContent?.trim() as keyof typeof counts | undefined;
+          if (!label || !(label in counts)) return;
+          const count = counts[label];
+          let badge = item.querySelector<HTMLElement>("b");
+          if (count <= 0) {
+            badge?.remove();
+            return;
+          }
+          if (!badge) {
+            badge = document.createElement("b");
+            item.appendChild(badge);
+          }
+          badge.textContent = count > 99 ? "99+" : String(count);
+          badge.style.display = "inline-flex";
+        });
+      } catch {}
+    };
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 15000);
+    return () => window.clearInterval(timer);
+  }, [ready, path]);
+
+  if (!ready) return <AppSkeleton />;
+
+  const profile = path.startsWith("/profile/");
+  const settings = path.startsWith("/settings");
+  const project = path.startsWith("/project/") && path !== "/project/new";
+  const post = path.startsWith("/post/");
+  const newProject = path === "/project/new";
+  const home = path === "/home" || path === "/";
+  const explore = path === "/explore";
+  const events = path === "/events";
+  const messages = path.startsWith("/messages");
+  const notifications = path.startsWith("/notifications");
+  const charts = path.startsWith("/charts");
+  const fundraising = path.startsWith("/fundraising");
+  const search = path.startsWith("/search");
+  const documentation = path === "/documentation" || path.startsWith("/documentation/") || path === "/privacy" || path === "/terms" || path === "/community-guidelines" || path === "/cookies";
+  const documentationSlug = path.startsWith("/documentation/")
+    ? decodeURIComponent(path.split("/")[2] || "about")
+    : path === "/privacy"
+      ? "privacy"
+      : path === "/terms"
+        ? "terms"
+        : path === "/community-guidelines"
+          ? "community-guidelines"
+          : path === "/cookies"
+            ? "cookies"
+            : "about";
+  const searchParams = typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("q") ?? "";
+
+  const hasActivePost = activePostId && (home || explore);
+  const layoutClass = hasActivePost ? "nerdding-enhanced-route" : "nerdding-enhanced-route full-width";
+
+  return (
+    <>
+      <MainContentLayoutFix />
+      <style>{`.nerdding-enhanced-route{width:100%}.nerdding-enhanced-route>.nerdd-route-surface{position:relative;inset:auto;z-index:auto;width:100%;min-height:100%;overflow:visible;padding:0}.nerdding-enhanced-route .view{max-width:none}body[data-nerdding-enhanced-route] .page-content>.view{display:none!important}.status-chip{display:none!important}.create-popover .create-option:nth-of-type(n+3){display:none}.settings-enhanced-stack{width:100%}.nerdding-feed-column{width:100%}`}</style>
+      <NerddingApp />
+      {portalTarget &&
+        createPortal(
+          <div className={layoutClass}>
+            <div className="nerdding-feed-column">
+              {home && (
+                <>
+                  <LiveHomeRoute />
+                  <FeedUpdatePrompt />
+                </>
+              )}
+              {explore && <ExploreRoute />}
+              {events && <EventsRoute />}
+              {profile && <ProfileSurface username={decodeURIComponent(path.split("/")[2] || "")} />}
+              {settings && (
+                <div className="settings-enhanced-stack">
+                  <SettingsSurface />
+                  <DocumentationSettingsCard />
+                </div>
+              )}
+              {project && <ProjectDetailSurface slug={decodeURIComponent(path.split("/")[2] || "")} />}
+              {post && <PostDetailSurface postId={decodeURIComponent(path.split("/")[2] || "")} />}
+              {newProject && <ProjectSurface />}
+              {messages && <LiveMessagesRoute />}
+              {notifications && <LiveNotificationsRoute />}
+              {charts && <LiveChartsRoute />}
+              {fundraising && <LiveFundraisingRoute />}
+              {search && <LiveSearchRoute query={searchParams} />}
+              {documentation && <DocumentationSurface slug={documentationSlug} />}
+            </div>
+
+            {hasActivePost && (
+              <PostDetailSurface
+                postId={activePostId}
+                onClose={() => setActivePostId(null)}
+                isPanel={true}
+              />
+            )}
+          </div>,
+          portalTarget
+        )}
+      {footerTarget && createPortal(<SiteFooter />, footerTarget)}
+      {!profile && <ProfilePostPopupLayer />}
+      {!profile && <NerddingInteractionLayer />}
+      <NerddingProjectInteractionLayer />
+      <HashtagEnhancer />
+      <AgentRouteShield />
+      <AgentVerificationGate2 />
+      <AgentVerificationRedirect />
+      <AgentLoginLink />
+      <AgentPendingNotice />
+      <RouteVisualFixLayer />
+    </>
+  );
 }
