@@ -17,7 +17,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/components/app/ProfileSectionTabs": ["./src/components/app/ProfileSectionTabsV3.tsx"],
-      "@/components/app/PostDetailSurface": ["./src/components/app/PostDetailSurfaceV2.tsx"]
+      "@/components/app/PostDetailSurface": ["./src/components/app/PostDetailSurfaceV2.tsx"],
+      "@/components/app/NerddingProjectInteractionLayer": ["./src/components/app/NerddingProjectInteractionLayerV2.tsx"]
     }
   },
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "src/**/*.ts", "src/**/*.tsx"],
