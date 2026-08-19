@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -14,9 +13,9 @@ const css = `
 .profile-inline-active-post .home-modal-head h2{font-size:17px;margin:3px 0 0;color:var(--ink,#201c19)}
 .profile-inline-active-post .home-modal-head button{width:32px;height:32px;border:1px solid var(--line,#ddd6cc);background:none;color:#8e847a;border-radius:50%;display:grid;place-items:center;cursor:pointer}
 .profile-inline-active-post .home-modal-scroll{max-height:calc(min(70vh,760px) - 60px);overflow-y:auto;overscroll-behavior:contain;padding:14px}
-.profile-inline-active-post .nerdd-route-surface{position:relative!important;inset:auto!important;z-index:auto!important;width:100%!important;min-height:0!important;padding:0!important;overflow:visible!important;background:transparent!important}
-.profile-inline-active-post .post-detail-view{max-width:none!important;padding:0!important}
-.profile-inline-active-post .post-detail-view>.back-button{display:none!important}
+.profile-inline-active-post .post-detail-panel{width:100%;max-height:none;background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
+.profile-inline-active-post .post-detail-panel-header{display:none!important}
+.profile-inline-active-post .post-detail-panel-inner{padding:0!important;max-height:none!important;overflow:visible!important}
 .profile-inline-active-post .post-detail-card{border:1px solid var(--line,#ddd6cc);border-radius:10px;padding:12px;background:var(--card,#fff);box-shadow:none}
 .profile-inline-active-post .post-detail-card-head{display:flex;align-items:center;gap:10px}
 .profile-inline-active-post .post-detail-copy{font-size:13px;line-height:1.6;white-space:pre-wrap;margin:13px 0}
@@ -46,10 +45,7 @@ export default function ProfilePostPopupLayer(){
       setPostId(null);
       return;
     }
-    const findTarget=()=>{
-      const next=document.querySelector<HTMLElement>(".profile-post-detail-slot");
-      if(next)setTarget(next);
-    };
+    const findTarget=()=>setTarget(document.querySelector<HTMLElement>(".profile-post-detail-slot"));
     findTarget();
     const observer=new MutationObserver(findTarget);
     observer.observe(document.body,{childList:true,subtree:true});
@@ -68,5 +64,5 @@ export default function ProfilePostPopupLayer(){
 
   if(!postId||!target)return null;
   const close=()=>setPostId(null);
-  return createPortal(<><style>{css}</style><section className="home-active-post profile-inline-active-post" role="dialog" aria-label="Active post"><div className="home-modal"><header className="home-modal-head"><div><span>POST DETAIL</span><h2>Active post</h2></div><button onClick={close} aria-label="Close post"><X size={18}/></button></header><div className="home-modal-scroll"><PostDetailSurface postId={postId}/></div></div></section></>,target);
+  return createPortal(<><style>{css}</style><section className="home-active-post profile-inline-active-post" role="dialog" aria-label="Active post"><div className="home-modal"><header className="home-modal-head"><div><span>POST DETAIL</span><h2>Active post</h2></div><button onClick={close} aria-label="Close post"><X size={18}/></button></header><div className="home-modal-scroll"><PostDetailSurface postId={postId} isPanel={true}/></div></div></section></>,target);
 }
