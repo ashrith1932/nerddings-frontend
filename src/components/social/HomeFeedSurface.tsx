@@ -90,6 +90,17 @@ const activePanelStyles = `
 .home-info-list > div:first-child { padding-top: 0; border-top: 0; }
 .home-info-list strong { display: block; color: var(--ink, #201c19); font-size: 11px; }
 .home-info-list small { display: block; margin-top: 2px; color: #9b9188; font-size: 9px; }
+.nerdd-quote { border: 1px solid #d9d2c9; background: #faf7f2; border-radius: 11px; padding: 11px; margin: 0 0 10px; cursor: pointer; }
+.nerdd-quote-label { font-size: 8px; font-weight: 800; letter-spacing: .13em; color: #9a9087; margin-bottom: 8px; }
+.nerdd-quote-head { display: flex; align-items: center; gap: 8px; }
+.nerdd-quote-head > span:last-child { display: flex; flex-direction: column; }
+.nerdd-quote-head strong { font-size: 10px; }
+.nerdd-quote-head small { font-size: 8px; color: #938980; margin-top: 2px; }
+.nerdd-quote-avatar { width: 29px; height: 29px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: #e9e3db; font-size: 8px; font-weight: 800; }
+.nerdd-quote-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.nerdd-quote-text { font-size: 11px; line-height: 1.5; white-space: pre-wrap; margin-top: 8px; color: #332e29; }
+.nerdd-quote-media { margin-top: 8px; border-radius: 8px; overflow: hidden; }
+.nerdd-quote-media img, .nerdd-quote-media video { display: block; width: 100%; height: 170px; object-fit: cover; background: #eee9e2; }
 .home-live-root { min-height: 100%; position: relative; z-index: 30; }
 .home-live-shell { max-width: 1120px; margin: 0 auto; padding: 4px 0 40px; }
 .home-live-tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--line, #ded7ce); margin-bottom: 14px; }
@@ -127,6 +138,7 @@ const activePanelStyles = `
 .home-actions { border-top: 1px solid #eee8e1; padding-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .home-actions-left, .home-actions-right { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .home-actions-right { margin-left: auto; }
+.home-actions-right { padding-left: 18px; }
 .home-actions button { border: 0; background: none; color: #7d736b; display: flex; align-items: center; gap: 5px; padding: 6px 4px; cursor: pointer; font-size: 10px; border-radius: 7px; white-space: nowrap; }
 .home-actions button.active { color: var(--accent, #d85a2d); }
 .home-feed-loading, .home-empty { min-height: 220px; display: grid; place-items: center; text-align: center; color: #8d8379; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
@@ -586,63 +598,44 @@ function ActivePostModal({
   );
 }
 
+type ChartBuilder = { id: string; name: string; username: string; accountType?: string; avatarUrl?: string | null; score?: number };
+type RailProject = { id: string; name: string; slug: string; stage?: string; description?: string };
+
 function HomeInfoRail() {
+  const [builders, setBuilders] = useState<ChartBuilder[]>([]);
+  const [projects, setProjects] = useState<RailProject[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const viewer = getSavedUser();
+    void Promise.allSettled([
+      apiFetch<{ data: { risingBuilders?: ChartBuilder[] } }>("/charts"),
+      viewer?.username
+        ? apiFetch<{ data: { projects?: RailProject[] } }>(`/social/users/${encodeURIComponent(viewer.username)}/profile-live`)
+        : Promise.resolve({ data: { projects: [] } }),
+    ]).then(([charts, profile]) => {
+      if (charts.status === "fulfilled") setBuilders(charts.value.data.risingBuilders ?? []);
+      if (profile.status === "fulfilled") setProjects(profile.value.data.projects ?? []);
+    }).finally(() => setLoading(false));
+  }, []);
   return (
     <aside className="home-info-rail">
       <section className="home-info-card">
         <h3>Build signal</h3>
-        <p>Your work is reaching more people this week.</p>
+        <p>{loading ? "Loading live signals…" : builders.length ? `${builders.length} builders are rising in the live charts.` : "Live signals will appear here as the network grows."}</p>
       </section>
       <section className="home-info-card">
         <div className="home-info-heading">
           <span>Rising builders</span>
           <button onClick={() => go("/charts")}>See all ↗</button>
         </div>
-        <div className="home-info-list">
-          <div>
-            <span className="home-avatar home-avatar-xs">RS</span>
-            <span>
-              <strong>Rahul Sharma</strong>
-              <small>Builder · Researcher</small>
-            </span>
-          </div>
-          <div>
-            <span className="home-avatar home-avatar-xs">MP</span>
-            <span>
-              <strong>Maya Patel</strong>
-              <small>Founder · Creator</small>
-            </span>
-          </div>
-          <div>
-            <span className="home-avatar home-avatar-xs">NO</span>
-            <span>
-              <strong>Nina Okafor</strong>
-              <small>Founder · Builder</small>
-            </span>
-          </div>
-        </div>
+        <div className="home-info-list">{builders.slice(0, 3).map((builder) => <div key={builder.id}><span className="home-avatar home-avatar-xs">{builder.avatarUrl ? <img src={builder.avatarUrl} alt="" /> : initials(builder.name)}</span><span><strong>{builder.name}</strong><small>@{builder.username} · {builder.accountType === "agent" ? "Agent" : "Builder"}</small></span></div>)}{!loading && !builders.length && <p>No rising builders yet.</p>}</div>
       </section>
       <section className="home-info-card">
         <div className="home-info-heading">
           <span>Projects to watch</span>
           <button onClick={() => go("/explore")}>Explore ↗</button>
         </div>
-        <div className="home-info-list">
-          <div>
-            <span className="home-avatar home-avatar-xs">L</span>
-            <span>
-              <strong>Loomly</strong>
-              <small>Productivity · 1.8k visits</small>
-            </span>
-          </div>
-          <div>
-            <span className="home-avatar home-avatar-xs">F</span>
-            <span>
-              <strong>Fieldnote</strong>
-              <small>Climate · 943 saves</small>
-            </span>
-          </div>
-        </div>
+        <div className="home-info-list">{projects.slice(0, 3).map((project) => <div key={project.id}><span className="home-avatar home-avatar-xs">{project.name.slice(0, 1).toUpperCase()}</span><span><strong>{project.name}</strong><small>{project.stage ?? "Project"}{project.description ? ` · ${project.description}` : ""}</small></span></div>)}{!loading && !projects.length && <p>No projects to watch yet.</p>}</div>
       </section>
       <section className="home-info-card">
         <div className="home-info-heading">
