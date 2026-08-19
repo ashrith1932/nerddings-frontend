@@ -1,17 +1,13 @@
-import { apiFetch } from "@/services/httpClient";
+import { getUnreadCount as getNotificationUnreadCount } from "@/services/notificationsApi";
+import { getUnreadCount as getMessageUnreadCount } from "@/services/messagesApi";
 
 export async function getNavigationCounts() {
   const [notifications, messages] = await Promise.allSettled([
-    apiFetch<any>("/notifications"),
-    apiFetch<any>("/social/messages/unread-count"),
+    getNotificationUnreadCount(),
+    getMessageUnreadCount(),
   ]);
-
   return {
-    notifications: notifications.status === "fulfilled"
-      ? Number(notifications.value?.unreadCount ?? notifications.value?.data?.unreadCount ?? 0)
-      : 0,
-    messages: messages.status === "fulfilled"
-      ? Number(messages.value?.data?.unreadCount ?? 0) + Number(messages.value?.data?.pendingRequests ?? 0)
-      : 0,
+    notifications: notifications.status === "fulfilled" ? notifications.value : 0,
+    messages: messages.status === "fulfilled" ? messages.value.unreadCount + messages.value.pendingRequests : 0,
   };
 }
