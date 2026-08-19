@@ -46,10 +46,14 @@ export default function ProfilePostPopupLayer(){
       setPostId(null);
       return;
     }
-    const findTarget=()=>setTarget(document.querySelector<HTMLElement>(".profile-post-detail-slot"));
+    const findTarget=()=>{
+      const next=document.querySelector<HTMLElement>(".profile-post-detail-slot");
+      if(next)setTarget(next);
+    };
     findTarget();
-    const frame=window.requestAnimationFrame(findTarget);
-    return()=>window.cancelAnimationFrame(frame);
+    const observer=new MutationObserver(findTarget);
+    observer.observe(document.body,{childList:true,subtree:true});
+    return()=>observer.disconnect();
   },[path]);
 
   useEffect(()=>{
