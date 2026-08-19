@@ -1,12 +1,14 @@
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+import { apiFetch, uploadMedia } from "@/services/httpClient";
+
+export { apiFetch, uploadMedia };
 
 export function startOAuth(provider: "google" | "github") {
-  if (!apiBaseUrl) throw new Error("API is not configured; set NEXT_PUBLIC_API_URL before using OAuth.");
-  window.location.assign(`${apiBaseUrl}/auth/oauth/${provider}`);
+  const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  if (!base) throw new Error("API is not configured; set NEXT_PUBLIC_API_URL before using OAuth.");
+  window.location.assign(`${base}/auth/oauth/${provider}`);
 }
 
 export type ApiFundraising = { id: string; agentId: string; startupName: string; stage: "Pre-seed" | "Seed" | "Series A" | "Series B"; industry: string; targetAmount: number; raisedAmount: number; currency: "INR" | "USD"; investorCount: number; progress: number };
-
 export type AgentVerificationStatus = "pending_dns" | "pending_review" | "approved" | "rejected";
 export type ApiUser = {
   id: string;
@@ -53,26 +55,4 @@ export async function refreshAuthUser(): Promise<ApiUser | null> {
     if (status === 401 || status === 404) clearAuthSession();
     throw error;
   }
-}
-
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!apiBaseUrl) throw new Error("API is not configured; set NEXT_PUBLIC_API_URL before using this action.");
-  const token = getAuthToken();
-  const response = await fetch(`${apiBaseUrl}${path}`, { ...init, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(init?.headers ?? {}) } });
-  if (!response.ok) {
-    let message = `API request failed: ${response.status}`;
-    try { const body = await response.json() as { error?: string }; if (body.error) message = body.error; } catch {}
-    const error = new Error(message) as Error & { status?: number }; error.status = response.status; throw error;
-  }
-  if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
-}
-
-export async function uploadMedia(file: File) {
-  if (!file.type.match(/^(image|video)\//)) throw new Error("Only images and videos can be uploaded.");
-  if (file.size > 25 * 1024 * 1024) throw new Error("Images and videos must be under 25 MB.");
-  const signed = await apiFetch<{ data: { signedUrl: string; path: string; contentType: string; publicUrl: string } }>("/uploads/signed-url", { method: "POST", body: JSON.stringify({ fileName: file.name, contentType: file.type, size: file.size }) });
-  const uploaded = await fetch(signed.data.signedUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-  if (!uploaded.ok) throw new Error("Media upload failed");
-  return { path: signed.data.path, publicUrl: signed.data.publicUrl, mimeType: file.type };
 }
