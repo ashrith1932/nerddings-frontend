@@ -155,14 +155,19 @@ export function NerddingApp() {
     return () => { delete document.body.dataset.appRoute; };
   }, [path]);
 
+  /* Standalone post routing uses NerddingApp's detail surface.
+     Home owns its active panel internally through HomeFeedSurface, so do not
+     attach the global open-post listener there. Explore continues using the
+     existing external panel until it gets its own local state owner. */
   useEffect(() => {
+    if (!path.startsWith("/explore")) return;
     const onOpenPost = (event: Event) => {
       const detail = (event as CustomEvent<{ postId?: string }>).detail;
       if (detail?.postId) setActivePostId(detail.postId);
     };
     window.addEventListener("nerdding:open-post", onOpenPost);
     return () => window.removeEventListener("nerdding:open-post", onOpenPost);
-  }, []);
+  }, [path]);
 
   useEffect(() => {
     const refreshBadges = async () => {
@@ -231,7 +236,7 @@ export function NerddingApp() {
   else if (path.startsWith("/documentation")) content = <DocumentationSurface slug={slug || "about"} />;
   else content = <><LiveHomeRoute />{path === "/home" && <FeedUpdatePrompt />}</>;
 
-  const showHomePanel = activePostId && (path === "/home" || path === "/explore");
+  const showExplorePanel = Boolean(activePostId && path.startsWith("/explore"));
 
   return (
     <>
@@ -241,7 +246,7 @@ export function NerddingApp() {
         <LoginlessShell path={path} onCreate={() => setMenuOpen((value) => !value)} onMenu={() => setMenuOpen((value) => !value)} menuOpen={menuOpen} onCloseMenu={() => setMenuOpen(false)} />
         <main className="app-main">
           <div className="page-content">{content}</div>
-          {showHomePanel && <PostDetailSurface postId={activePostId!} onClose={() => setActivePostId(null)} isPanel />}
+          {showExplorePanel && <PostDetailSurface postId={activePostId!} onClose={() => setActivePostId(null)} isPanel />}
           <SiteFooter />
         </main>
       </div>
