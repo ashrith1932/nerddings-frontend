@@ -40,7 +40,7 @@ function ago(value?: string | null) {
 }
 
 function UserAvatar({ user, size = 42 }: { user: ProfileUser; size?: number }) {
-  return <span className="home-avatar home-avatar-md profile-tab-avatar" style={{ width: size, height: size }}>
+  return <span className="home-avatar home-avatar-md" style={{ width: size, height: size }}>
     {user.avatarUrl ? <img src={user.avatarUrl} alt="" /> : initials(user.name)}
   </span>;
 }
@@ -54,6 +54,10 @@ function Skeleton() {
   </div>;
 }
 
+/**
+ * Profile Build Notes use the same visual structure and interaction model as
+ * the main home feed, while retaining the profile-specific API mutations.
+ */
 function PostCard({ post, user, onOpen }: { post: ProfilePost; user: ProfileUser; onOpen: (id: string) => void }) {
   const [likes, setLikes] = useState(post.likes);
   const [saves, setSaves] = useState(post.saves);
@@ -72,8 +76,14 @@ function PostCard({ post, user, onOpen }: { post: ProfilePost; user: ProfileUser
     }
   };
 
-  return <article className="home-post profile-build-card profile-post-row" data-post-id={post.id}
-    onClick={(event) => { if ((event.target as HTMLElement).closest("button,a,.nerdd-quote,video")) return; onOpen(post.id); }}>
+  return <article
+    className="home-post"
+    data-post-id={post.id}
+    onClick={(event) => {
+      if ((event.target as HTMLElement).closest("button,a,input,.nerdd-quote,video")) return;
+      onOpen(post.id);
+    }}
+  >
     <div className="home-post-head">
       <button className="home-author" onClick={(event) => { event.stopPropagation(); navigate(`/profile/${encodeURIComponent(user.username)}`); }}>
         <UserAvatar user={user} />
@@ -82,9 +92,14 @@ function PostCard({ post, user, onOpen }: { post: ProfilePost; user: ProfileUser
       <button className="home-more" aria-label="Post options" onClick={(event) => event.stopPropagation()}><Ellipsis size={17} /></button>
     </div>
     <div className="home-post-copy">{post.text}</div>
-    {post.quotePost?.author ? <article className="nerdd-quote profile-quote-card" role="button" tabIndex={0}
+    {post.quotePost?.author ? <article
+      className="nerdd-quote"
+      data-quote-post-id={post.quotePost.id}
+      role="button"
+      tabIndex={0}
       onClick={(event) => { event.stopPropagation(); onOpen(post.quotePost!.id); }}
-      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onOpen(post.quotePost!.id); } }}>
+      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onOpen(post.quotePost!.id); } }}
+    >
       <div className="nerdd-quote-label">QUOTED POST</div>
       <div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{post.quotePost.author.avatarUrl ? <img src={post.quotePost.author.avatarUrl} alt="" /> : initials(post.quotePost.author.name)}</span><span><strong>{post.quotePost.author.name}</strong><small>@{post.quotePost.author.username} · {ago(post.quotePost.createdAt)}</small></span></div>
       <div className="nerdd-quote-text">{post.quotePost.text}</div>
@@ -92,15 +107,18 @@ function PostCard({ post, user, onOpen }: { post: ProfilePost; user: ProfileUser
     {post.media?.length ? <div className={`home-media home-media-${Math.min(post.media.length, 4)}`}>{post.media.slice(0, 4).map((media, index) => media.publicUrl ? (media.mimeType?.startsWith("video/") ? <video key={index} src={media.publicUrl} controls onClick={(event) => event.stopPropagation()} /> : <img key={index} src={media.publicUrl} alt="" loading="lazy" onClick={(event) => event.stopPropagation()} />) : null)}</div> : null}
     {post.projectName ? <button className="home-project" onClick={(event) => { event.stopPropagation(); window.dispatchEvent(new CustomEvent("nerdding:open-project-panel", { detail: { id: post.projectId, slug: post.projectSlug } })); }}><span><strong>{post.projectName}</strong><small>Project</small></span><ArrowRight size={14} /></button> : null}
     {post.linkUrl ? <a className="home-link" href={post.linkUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>{post.linkUrl.replace(/^https?:\/\//, "")}</a> : null}
-    <div className="home-actions"><div className="home-actions-left">
-      <button disabled={busy} onClick={(event) => { event.stopPropagation(); void action("like"); }}><Heart size={16} /><span>{likes}</span></button>
-      <button onClick={(event) => { event.stopPropagation(); onOpen(post.id); }}><MessageCircle size={16} /><span>{post.comments}</span></button>
-      <button data-action="amplify" disabled={busy} onClick={(event) => { event.stopPropagation(); void action("amplify"); }}><Activity size={16} /><span>{reposts}</span></button>
-    </div><div className="home-actions-right">
-      <span className="home-views"><Eye size={14} /> {post.views ?? 0} views</span>
-      <button disabled={busy} onClick={(event) => { event.stopPropagation(); void action("save"); }}><Bookmark size={16} /><span>Save</span></button>
-      <button data-action="send" onClick={(event) => event.stopPropagation()}><Send size={16} /><span>Send</span></button>
-    </div></div>
+    <div className="home-actions">
+      <div className="home-actions-left">
+        <button disabled={busy} onClick={(event) => { event.stopPropagation(); void action("like"); }}><Heart size={16} /><span>{likes}</span></button>
+        <button onClick={(event) => { event.stopPropagation(); onOpen(post.id); }}><MessageCircle size={16} /><span>{post.comments}</span></button>
+        <button data-action="amplify" disabled={busy} onClick={(event) => { event.stopPropagation(); void action("amplify"); }}><Activity size={16} /><span>{reposts}</span></button>
+      </div>
+      <div className="home-actions-right">
+        <span className="home-views"><Eye size={14} /> {post.views ?? 0} views</span>
+        <button disabled={busy} onClick={(event) => { event.stopPropagation(); void action("save"); }}><Bookmark size={16} /><span>Save</span></button>
+        <button data-action="send" onClick={(event) => { event.stopPropagation(); void navigator.clipboard?.writeText(`${window.location.origin}/post/${post.id}`); }}><Send size={16} /><span>Send</span></button>
+      </div>
+    </div>
   </article>;
 }
 
@@ -145,12 +163,12 @@ function ActivePost({ postId, onClose, onBack, onOpenQuote }: { postId: string; 
   return <section className="profile-active-post"><div className="home-active-post"><div className="home-modal">
     <header className="home-modal-head"><div><small>POST DETAIL</small><h2>Active post</h2></div><div className="home-active-post-head-actions">{onBack ? <button aria-label="Back" onClick={onBack}>←</button> : null}<button aria-label="Close" onClick={onClose}><X size={17} /></button></div></header>
     <div className="home-modal-scroll"><article className="home-modal-content">
-      <div className="home-post-head"><span className="home-author"><span className="home-avatar home-avatar-md">{post.author?.avatarUrl ? <img src={post.author.avatarUrl} alt="" /> : initials(post.author?.name)}</span><span><strong>{post.author?.name}</strong><small>@{post.author?.username}</small></span></span><small>{post.createdAt ? new Date(post.createdAt).toLocaleString() : ""}</small></div>
-      <div className="home-active-text">{post.text}</div>
-      {post.quotePost?.author ? <article className="nerdd-quote profile-quote-card" role="button" tabIndex={0} onClick={(event) => { event.stopPropagation(); onOpenQuote(post.quotePost.id); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpenQuote(post.quotePost.id); } }}><div className="nerdd-quote-label">QUOTED POST</div><div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{post.quotePost.author.avatarUrl ? <img src={post.quotePost.author.avatarUrl} alt="" /> : initials(post.quotePost.author.name)}</span><span><strong>{post.quotePost.author.name}</strong><small>@{post.quotePost.author.username}</small></span></div><div className="nerdd-quote-text">{post.quotePost.text}</div></article> : null}
+      <div className="home-post-head"><button className="home-author" onClick={() => navigate(`/profile/${encodeURIComponent(post.author?.username ?? "")}`)}><span className="home-avatar home-avatar-md">{post.author?.avatarUrl ? <img src={post.author.avatarUrl} alt="" /> : initials(post.author?.name)}</span><span><strong>{post.author?.name}</strong><small>@{post.author?.username} · {post.createdAt ? ago(post.createdAt) : ""}</small></span></button></div>
+      <div className="home-modal-text">{post.text}</div>
+      {post.quotePost?.author ? <article className="nerdd-quote" data-quote-post-id={post.quotePost.id} role="button" tabIndex={0} onClick={(event) => { event.stopPropagation(); onOpenQuote(post.quotePost.id); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpenQuote(post.quotePost.id); } }}><div className="nerdd-quote-label">QUOTED POST</div><div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{post.quotePost.author.avatarUrl ? <img src={post.quotePost.author.avatarUrl} alt="" /> : initials(post.quotePost.author.name)}</span><span><strong>{post.quotePost.author.name}</strong><small>@{post.quotePost.author.username} · {ago(post.quotePost.createdAt)}</small></span></div><div className="nerdd-quote-text">{post.quotePost.text}</div></article> : null}
       {post.media?.length ? <div className={`home-media home-media-${Math.min(post.media.length, 4)}`}>{post.media.slice(0, 4).map((media: any, index: number) => media.publicUrl ? (media.mimeType?.startsWith("video/") ? <video key={index} src={media.publicUrl} controls /> : <img key={index} src={media.publicUrl} alt="" />) : null)}</div> : null}
-      {post.project ? <div className="home-project"><span><strong>{post.project.name}</strong><small>Project</small></span></div> : null}
-      <div className="home-actions"><div className="home-actions-left"><button disabled={actionBusy} onClick={() => void action("like")}><Heart size={15} /><span>{post.likes ?? 0}</span></button><button><MessageCircle size={15} /><span>{post.comments ?? 0}</span></button><button data-action="amplify" disabled={actionBusy} onClick={() => void action("amplify")}><Activity size={15} /><span>{post.reposts ?? 0}</span></button></div><div className="home-actions-right"><span className="home-views"><Eye size={14} /> {post.views ?? 0} views</span><button disabled={actionBusy} onClick={() => void action("save")}><Bookmark size={15} /><span>Save</span></button><button data-action="send"><Send size={15} /><span>Send</span></button></div></div>
+      {post.project ? <div className="home-project"><span><strong>{post.project.name}</strong><small>{post.project.stage ?? "Project"} · {post.project.description ?? ""}</small></span></div> : null}
+      <div className="home-actions"><div className="home-actions-left"><button disabled={actionBusy} onClick={() => void action("like")}><Heart size={15} /><span>{post.likes ?? 0}</span></button><button onClick={() => onOpenQuote(post.id)}><MessageCircle size={15} /><span>{post.comments ?? 0}</span></button><button data-action="amplify" disabled={actionBusy} onClick={() => void action("amplify")}><Activity size={15} /><span>{post.reposts ?? 0}</span></button></div><div className="home-actions-right"><span className="home-views"><Eye size={14} /> {post.views ?? 0} views</span><button disabled={actionBusy} onClick={() => void action("save")}><Bookmark size={15} /><span>Save</span></button><button data-action="send" onClick={() => void navigator.clipboard?.writeText(`${window.location.origin}/post/${post.id}`)}><Send size={15} /><span>Send</span></button></div></div>
     </article></div></div></div></section>;
 }
 
