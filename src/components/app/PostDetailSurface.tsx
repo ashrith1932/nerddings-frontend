@@ -8,7 +8,7 @@ import ThreadedCommentTree, { type ThreadComment } from "@/components/social/Thr
 
 type UserRef = { id: string; name: string; username: string; avatarUrl?: string | null };
 type Media = { publicUrl: string | null; mimeType: string };
-type QuotePost = { id: string; text: string; createdAt: string; author: UserRef; media?: Media[]; likes?: number; comments?: number; reposts?: number; saves?: number; views?: number };
+type QuotePost = { id: string; text: string; createdAt: string; author: UserRef; media?: Media[]; linkUrl?: string | null; likes?: number; comments?: number; reposts?: number; saves?: number; views?: number };
 type ProjectRef = { name: string; slug: string; stage?: string; description?: string; githubUrl?: string | null };
 type Post = { id: string; text: string; createdAt: string; likes: number; comments: number; reposts: number; saves?: number; views?: number; author: UserRef; project?: ProjectRef | null; linkUrl?: string | null; media?: Media[]; quotePost?: QuotePost | null; commentsTree: ThreadComment[] };
 
@@ -16,14 +16,14 @@ const nav = (path: string) => { window.history.pushState({}, "", path); window.d
 const ago = (value: string) => { const seconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000)); if (seconds < 60) return "now"; if (seconds < 3600) return `${Math.floor(seconds / 60)}m`; if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`; return `${Math.floor(seconds / 86400)}d`; };
 
 const homePanelStyles = `
-.profile-active-post .home-active-post { min-width:0; max-height:min(70vh,760px); overflow:hidden; border:1px solid var(--line,#ddd6cc); border-radius:12px; background:var(--card,#fff); box-shadow:0 5px 18px rgba(31,27,24,.05); animation:profile-home-panel-in .3s ease-out; }
-.profile-active-post .home-modal { width:100%; max-height:min(70vh,760px); border:0; border-radius:0; box-shadow:none; overflow:hidden; display:flex; flex-direction:column; }
+.profile-active-post .home-active-post { min-width:0; max-height:min(82vh,900px); overflow:hidden; border:1px solid var(--line,#ddd6cc); border-radius:12px; background:var(--card,#fff); box-shadow:0 5px 18px rgba(31,27,24,.05); animation:profile-home-panel-in .3s ease-out; }
+.profile-active-post .home-modal { width:100%; max-height:min(82vh,900px); border:0; border-radius:0; box-shadow:none; overflow:hidden; display:flex; flex-direction:column; }
 .profile-active-post .home-modal-head { height:60px; flex:0 0 60px; border-bottom:1px solid var(--line,#ddd6cc); display:flex; align-items:center; justify-content:space-between; padding:0 15px; position:sticky; top:0; z-index:2; background:var(--card,#fff); }
 .profile-active-post .home-modal-head span { font-size:8px; letter-spacing:.14em; color:#978d84; font-weight:800; }
 .profile-active-post .home-modal-head h2 { font-size:17px; margin:3px 0 0; }
 .profile-active-post .home-modal-head button { width:32px; height:32px; border:1px solid var(--line,#ddd6cc)!important; background:none; color:#8e847a; border-radius:50%!important; display:grid; place-items:center; cursor:pointer; }
-.profile-active-post .home-modal-scroll { max-height:calc(min(70vh,760px) - 60px); overflow-y:auto; overscroll-behavior:contain; padding:14px; }
-.profile-active-post .home-modal-content { border:1px solid var(--line,#ddd6cc); border-radius:10px; padding:12px; background:var(--card,#fff); }
+.profile-active-post .home-modal-scroll { max-height:calc(min(82vh,900px) - 60px); overflow-y:auto; overscroll-behavior:contain; padding:14px; }
+.profile-active-post .home-modal-content { border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--card,#fff); }
 .profile-active-post .home-modal-text { font-size:13px; line-height:1.6; white-space:pre-wrap; margin:13px 0; }
 .profile-active-post .home-modal-media { display:grid; gap:5px; border-radius:9px; overflow:hidden; }
 .profile-active-post .home-modal-media img,.profile-active-post .home-modal-media video { width:100%; max-height:420px; object-fit:contain; background:#eee9e2; }
@@ -46,16 +46,61 @@ const homePanelStyles = `
 .profile-active-post .nerdd-quote-avatar { width:29px; height:29px; border-radius:50%; overflow:hidden; display:grid; place-items:center; background:#e9e3db; font-size:8px; font-weight:800; }
 .profile-active-post .nerdd-quote-avatar img { width:100%; height:100%; object-fit:cover; }
 .profile-active-post .nerdd-quote-text { font-size:11px; line-height:1.5; white-space:pre-wrap; margin-top:8px; color:#332e29; }
+.profile-active-post .nerdd-quote-media { margin-top:8px; border-radius:8px; overflow:hidden; }
+.profile-active-post .nerdd-quote-media img,.profile-active-post .nerdd-quote-media video { display:block; width:100%; height:170px; object-fit:cover; background:#eee9e2; }
 @keyframes profile-home-panel-in { from { opacity:0; transform:translateX(18px);} to { opacity:1; transform:translateX(0);} }
 @media(max-width:600px){.profile-active-post .home-active-post{margin-top:16px;max-height:none}.profile-active-post .home-modal{max-height:none}.profile-active-post .home-modal-scroll{max-height:none}.profile-active-post .home-modal-head{height:58px;flex-basis:58px}}
 `;
 
-function UserButton({ user }: { user: UserRef }) {
-  return <button className="home-author" onClick={() => nav(`/profile/${encodeURIComponent(user.username)}`)}><Avatar user={user} size="md" /><span><strong>{user.name}</strong><small>@{user.username}</small></span></button>;
+const globalActivePostStyles = `
+body .home-live-grid:has(.home-active-post) { grid-template-columns:minmax(0,1fr) 410px !important; }
+body .home-active-post { max-height:min(82vh,900px) !important; }
+body .home-active-post .home-modal { max-height:min(82vh,900px) !important; }
+body .home-active-post .home-modal-scroll { max-height:calc(min(82vh,900px) - 60px) !important; }
+body .profile-content-grid:has(.profile-active-post) { grid-template-columns:minmax(0,1fr) 400px !important; }
+body .profile-active-post { max-width:100% !important; }
+@media (max-width:1100px) { body .home-live-grid:has(.home-active-post) { grid-template-columns:minmax(0,1fr) 380px !important; } body .profile-content-grid:has(.profile-active-post) { grid-template-columns:minmax(0,1fr) 370px !important; } }
+@media (max-width:920px) { body .home-live-grid:has(.home-active-post), body .profile-content-grid:has(.profile-active-post) { grid-template-columns:minmax(0,1fr) !important; } }
+`;
+
+if (typeof document !== "undefined" && !document.getElementById("nerdding-active-post-global-styles")) {
+  const style = document.createElement("style");
+  style.id = "nerdding-active-post-global-styles";
+  style.textContent = globalActivePostStyles;
+  document.head.appendChild(style);
 }
 
-function QuoteCard({ quote }: { quote: QuotePost }) {
-  return <article className="nerdd-quote"><div className="nerdd-quote-label">QUOTED POST</div><div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{quote.author.avatarUrl ? <img src={quote.author.avatarUrl} alt="" /> : null}</span><span><strong>{quote.author.name}</strong><small>@{quote.author.username} · {ago(quote.createdAt)}</small></span></div><div className="nerdd-quote-text">{quote.text}</div>{quote.media?.length ? <div className="nerdd-quote-media">{quote.media.slice(0,4).map((media,index) => media.publicUrl ? (media.mimeType.startsWith("video/") ? <video key={index} src={media.publicUrl} controls /> : <img key={index} src={media.publicUrl} alt="" loading="lazy" />) : null)}</div> : null}</article>;
+if (typeof window !== "undefined") {
+  const key = "__nerddingActivePostId";
+  const marker = "__nerddingActivePostInteractionBound";
+  const win = window as Window & { [key]?: string; [marker]?: boolean };
+  if (!win[marker]) {
+    win[marker] = true;
+    document.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement | null;
+      const postCard = target?.closest<HTMLElement>(".home-post[data-post-id]");
+      if (postCard?.dataset.postId) win[key] = postCard.dataset.postId;
+
+      const quote = target?.closest<HTMLElement>(".home-modal .nerdd-quote[data-quote-post-id]");
+      if (!quote) return;
+      const quotedId = quote.dataset.quotePostId;
+      if (!quotedId) return;
+      if (target.closest("video")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const eventName = target.closest(".profile-active-post") ? "nerdding:open-profile-post" : "nerdding:open-post";
+      window.dispatchEvent(new CustomEvent(eventName, { detail: { postId: quotedId } }));
+    }, true);
+  }
+}
+
+function UserButton({ user }: { user: UserRef }) {
+  return <button className="home-author" onClick={(event) => { event.stopPropagation(); nav(`/profile/${encodeURIComponent(user.username)}`); }}><Avatar user={user} size="md" /><span><strong>{user.name}</strong><small>@{user.username}</small></span></button>;
+}
+
+function QuoteCard({ quote, isPanel }: { quote: QuotePost; isPanel?: boolean }) {
+  const open = () => window.dispatchEvent(new CustomEvent(isPanel ? "nerdding:open-profile-post" : "nerdding:open-post", { detail: { postId: quote.id } }));
+  return <article className="nerdd-quote" data-quote-post-id={quote.id} role="button" tabIndex={0} onClick={(event) => { event.stopPropagation(); open(); }} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); open(); } }}><div className="nerdd-quote-label">QUOTED POST</div><div className="nerdd-quote-head"><span className="nerdd-quote-avatar">{quote.author.avatarUrl ? <img src={quote.author.avatarUrl} alt="" /> : quote.author.name.slice(0,1).toUpperCase()}</span><span><strong>{quote.author.name}</strong><small>@{quote.author.username} · {ago(quote.createdAt)}</small></span></div><div className="nerdd-quote-text">{quote.text}</div>{quote.media?.length ? <div className="nerdd-quote-media">{quote.media.slice(0,4).map((media,index) => media.publicUrl ? (media.mimeType.startsWith("video/") ? <video key={index} src={media.publicUrl} controls onClick={(event) => event.stopPropagation()} /> : <img key={index} src={media.publicUrl} alt="" loading="lazy" />) : null)}</div> : null}</article>;
 }
 
 export default function PostDetailSurface({ postId, onClose, isPanel = false }: { postId: string; onClose?: () => void; isPanel?: boolean }) {
@@ -81,22 +126,9 @@ export default function PostDetailSurface({ postId, onClose, isPanel = false }: 
     return <section className="home-active-post" role="dialog" aria-label="Active post"><style>{homePanelStyles}</style><div className="home-modal"><header className="home-modal-head"><div><span>POST DETAIL</span><h2>Active post</h2></div>{onClose && <button onClick={onClose} aria-label="Close post"><X size={18} /></button>}</header><div className="home-modal-scroll"><div className="empty-state"><strong>Post could not be loaded.</strong><span>{error}</span><button className="outline-button" onClick={() => void load()}>Try again</button></div></div></div></section>;
   }
 
-  const content = <><article className="home-modal-content">
-    <UserButton user={post.author} />
-    <p className="home-modal-text">{post.text}</p>
-    {post.quotePost ? <QuoteCard quote={post.quotePost} /> : null}
-    {post.media?.length ? <div className="home-modal-media">{post.media.slice(0,4).map((media,index) => media.publicUrl ? (media.mimeType.startsWith("video/") ? <video key={index} src={media.publicUrl} controls /> : <img key={index} src={media.publicUrl} alt="" loading="lazy" />) : null)}</div> : null}
-    {post.project && <button className="home-project" onClick={() => window.dispatchEvent(new CustomEvent("nerdding:open-project", { detail: { slug: post.project?.slug } }))}><span><strong>{post.project.name}</strong><small>{post.project.stage ?? "Project"}</small></span></button>}
-    {post.linkUrl ? <a className="home-link" href={post.linkUrl} target="_blank" rel="noreferrer"><Link2 size={14} />{post.linkUrl.replace(/^https?:\/\//, "")}</a> : null}
-    <div className="home-modal-stats"><span>{post.likes} likes</span><span>{post.comments} comments</span><span>{post.reposts} nerddings</span></div>
-  </article>
-  <section>
-    <div className="home-section-label">COMMENTS</div>
-    <div className="home-comment-compose"><Avatar user={getSavedUser() ?? { id:"guest", name:"Guest", username:"guest" }} size="xs" /><input value={text} onChange={(event) => setText(event.target.value)} placeholder="Write a comment or reply..." onKeyDown={(event) => { if (event.key === "Enter" && text.trim()) { const body = text.trim(); setText(""); void addComment(null, body); } }} /><button disabled={!text.trim() || busy} onClick={() => { const body = text.trim(); setText(""); void addComment(null, body); }}><Send size={14} /></button></div>
-    {post.commentsTree?.length ? <ThreadedCommentTree comments={post.commentsTree} onReply={addComment} /> : <div className="home-no-comments"><MessageCircle size={17} /> No comments yet.</div>}
-  </section></>;
+  const content = <><article className="home-modal-content"><UserButton user={post.author} /><p className="home-modal-text">{post.text}</p>{post.quotePost ? <QuoteCard quote={post.quotePost} isPanel={isPanel} /> : null}{post.media?.length ? <div className="home-modal-media">{post.media.slice(0,4).map((media,index) => media.publicUrl ? (media.mimeType.startsWith("video/") ? <video key={index} src={media.publicUrl} controls /> : <img key={index} src={media.publicUrl} alt="" loading="lazy" />) : null)}</div> : null}{post.project && <button className="home-project" onClick={() => window.dispatchEvent(new CustomEvent("nerdding:open-project", { detail: { slug: post.project?.slug } }))}><span><strong>{post.project.name}</strong><small>{post.project.stage ?? "Project"}</small></span></button>}{post.linkUrl ? <a className="home-link" href={post.linkUrl} target="_blank" rel="noreferrer"><Link2 size={14} />{post.linkUrl.replace(/^https?:\/\//, "")}</a> : null}<div className="home-modal-stats"><span>{post.likes} likes</span><span>{post.comments} comments</span><span>{post.reposts} nerddings</span></div></article><section><div className="home-section-label">COMMENTS</div><div className="home-comment-compose"><Avatar user={getSavedUser() ?? { id:"guest", name:"Guest", username:"guest" }} size="xs" /><input value={text} onChange={(event) => setText(event.target.value)} placeholder="Write a comment or reply..." onKeyDown={(event) => { if (event.key === "Enter" && text.trim()) { const body = text.trim(); setText(""); void addComment(null, body); } }} /><button disabled={!text.trim() || busy} onClick={() => { const body = text.trim(); setText(""); void addComment(null, body); }}><Send size={14} /></button></div>{post.commentsTree?.length ? <ThreadedCommentTree comments={post.commentsTree} onReply={addComment} /> : <div className="home-no-comments"><MessageCircle size={17} /> No comments yet.</div>}</section></>;
 
   if (isPanel) return <section className="home-active-post" role="dialog" aria-label="Active post"><style>{homePanelStyles}</style><div className="home-modal"><header className="home-modal-head"><div><span>POST DETAIL</span><h2>Active post</h2></div>{onClose && <button onClick={onClose} aria-label="Close post"><X size={18} /></button>}</header><div className="home-modal-scroll">{content}</div></div></section>;
 
-  return <div className="nerdd-route-surface"><div className="view post-detail-view">{!onClose && <button className="back-button" onClick={() => nav("/home")}><ArrowLeft size={15} /> Back to feed</button>}<article className="post-detail-card"><div className="post-detail-card-head"><UserButton user={post.author} /><span className="post-detail-time">{new Date(post.createdAt).toLocaleString()}</span></div><p className="post-detail-copy">{post.text}</p>{post.quotePost ? <QuoteCard quote={post.quotePost} /> : null}{post.media?.length ? <div className="post-detail-media">{post.media.slice(0,4).map((media,index) => media.publicUrl ? (media.mimeType.startsWith("video/") ? <video key={index} src={media.publicUrl} controls /> : <img key={index} src={media.publicUrl} alt="" loading="lazy" />) : null)}</div> : null}<div className="post-detail-actionbar"><div><span title="Likes"><Heart size={15} /> {post.likes}</span><span title="Comments"><MessageCircle size={15} /> {post.comments}</span><span title="Amplifies"><Activity size={15} /> {post.reposts}</span></div><div><span title="Views"><Eye size={15} /> {post.views ?? 0}</span><button title="Save" className={saved ? "action-active" : ""} onClick={async () => { try { const response = await apiFetch<{ data: { active: boolean } }>(`/posts/${post.id}/save`, { method: "POST" }); setSaved(response.data.active); await load(); } catch { setError("Post could not be saved"); } }}><Bookmark size={15} fill={saved ? "currentColor" : "none"} /> Save</button></div></div></article></div></div>;
+  return <div className="nerdd-route-surface"><div className="view post-detail-view">{!onClose && <button className="back-button" onClick={() => nav("/home")}><ArrowLeft size={15} /> Back to feed</button>}<article className="post-detail-card"><div className="post-detail-card-head"><UserButton user={post.author} /><span className="post-detail-time">{new Date(post.createdAt).toLocaleString()}</span></div><p className="post-detail-copy">{post.text}</p>{post.quotePost ? <QuoteCard quote={post.quotePost} isPanel={false} /> : null}{post.media?.length ? <div className="post-detail-media">{post.media.slice(0,4).map((media,index) => media.publicUrl ? (media.mimeType.startsWith("video/") ? <video key={index} src={media.publicUrl} controls /> : <img key={index} src={media.publicUrl} alt="" loading="lazy" />) : null)}</div> : null}<div className="post-detail-actionbar"><div><span title="Likes"><Heart size={15} /> {post.likes}</span><span title="Comments"><MessageCircle size={15} /> {post.comments}</span><span title="Amplifies"><Activity size={15} /> {post.reposts}</span></div><div><span title="Views"><Eye size={15} /> {post.views ?? 0}</span><button title="Save" className={saved ? "action-active" : ""} onClick={async () => { try { const response = await apiFetch<{ data: { active: boolean } }>(`/posts/${post.id}/save`, { method: "POST" }); setSaved(response.data.active); await load(); } catch { setError("Post could not be saved"); } }}><Bookmark size={15} fill={saved ? "currentColor" : "none"} /> Save</button></div></div></article></div></div>;
 }
