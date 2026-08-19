@@ -5,7 +5,7 @@ import MainContentLayoutFix from "@/components/shell/MainContentLayoutFix";
 import AppShell from "@/components/shell/AppShell";
 import AppRouter from "@/components/pages/AppRouter";
 import AppRuntime from "@/components/runtime/AppRuntime";
-import "@/components/app/nerdding-route-surfaces.css";
+import "@/styles/shell.css";
 
 export function NerddingApp() {
   const [path, setPath] = useState(() => typeof window === "undefined" ? "/home" : window.location.pathname);
