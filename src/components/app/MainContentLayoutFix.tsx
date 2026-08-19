@@ -3,17 +3,10 @@
 const css = `
 /* Desktop shell: navigation | primary feed | independent right rail. */
 @media (min-width: 1100px) {
-  .app-main {
-    min-width: 0 !important;
-  }
+  .app-main { min-width: 0 !important; }
+  .page-content { min-width: 0 !important; overflow-x: clip !important; }
 
-  .page-content {
-    min-width: 0 !important;
-    overflow-x: clip !important;
-  }
-
-  /* Keep the main content readable instead of letting enhanced route surfaces span underneath the rail. */
-  body[data-nerdding-enhanced-route="/home"] .nerdding-enhanced-route,
+  /* Home owns its own content grid; scope it by the route data attribute only. */
   body[data-nerdding-enhanced-route="/home"] .home-live-root,
   body[data-nerdding-enhanced-route="/home"] .home-live-host {
     min-width: 0 !important;
@@ -32,7 +25,6 @@ const css = `
     width: 100% !important;
   }
 
-  /* The home feed owns the right column and swaps its info rail for the active post. */
   body[data-nerdding-enhanced-route="/home"] .home-live-grid.with-active {
     grid-template-columns: minmax(0, 1fr) 360px !important;
     padding-right: 0 !important;
@@ -47,12 +39,10 @@ const css = `
   }
 }
 
-/* Never allow route content or cards to paint over the top navigation. */
 .topbar { position: sticky !important; top: 0 !important; z-index: 900 !important; }
-.page-content, .nerdding-enhanced-route, .nerdd-route-surface { position: relative; z-index: 1; }
+.page-content { position: relative; z-index: 1; }
 .home-live-root, .home-live-grid, .home-feed, .post-card { min-width: 0; }
 
-/* Preserve the three-column intent while collapsing cleanly before tablet widths. */
 @media (max-width: 1099px) {
   .right-rail { width: 320px; min-width: 280px; }
   body[data-nerdding-enhanced-route="/home"] .home-live-grid { grid-template-columns: minmax(0,1fr) minmax(280px,320px) !important; }
