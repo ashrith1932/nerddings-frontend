@@ -22,8 +22,7 @@ export default function ProfilePostPopupLayer(){
       const target=event.target as HTMLElement|null;
       if(!target||target.closest(".active-post-side-layer"))return;
       const profileRow=target.closest<HTMLElement>(".profile-post-row");
-      const homePost=target.closest<HTMLElement>(".home-post");
-      if(!profileRow&&!homePost)return;
+      if(!profileRow)return;
       if(target.closest("button,a,input,textarea,video,.home-author,.home-project,.home-link")&&!target.closest(".nerdd-quote"))return;
       event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
       setLoading(true);
@@ -34,11 +33,6 @@ export default function ProfilePostPopupLayer(){
         void apiFetch<any>(`/social/users/${encodeURIComponent(username)}/profile-live`).then(r=>{const post=r.data?.posts?.[index];if(post?.id)setPostId(String(post.id))}).finally(()=>setLoading(false));
         return;
       }
-      const mode=document.querySelector(".home-live-tabs button.active")?.textContent?.toLowerCase().includes("network")?"network":"for-you";
-      const cards=[...document.querySelectorAll<HTMLElement>(".home-post")];const index=homePost?cards.indexOf(homePost):-1;
-      if(index<0){setLoading(false);return}
-      const quote=Boolean(target.closest(".nerdd-quote"));
-      void apiFetch<any>(`/social/feed?mode=${mode}`).then(r=>{const post=r.data?.[index];const id=quote?(post?.quotePost?.id??post?.quotePostId):post?.id;if(id)setPostId(String(id))}).finally(()=>setLoading(false));
     };
     document.addEventListener("click",onClick,true);window.addEventListener("nerdding:open-post",onOpen as EventListener);
     return()=>{document.removeEventListener("click",onClick,true);window.removeEventListener("nerdding:open-post",onOpen as EventListener)};
