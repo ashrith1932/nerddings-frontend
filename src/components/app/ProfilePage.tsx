@@ -6,6 +6,7 @@ import { apiFetch, getSavedUser, uploadMedia } from "@/lib/api";
 import { Avatar, VerifiedMark } from "@/components/ui/Avatar";
 import { currentUser as seededCurrentUser, type User } from "@/lib/mock-data";
 import ProfileSectionTabs from "@/components/app/ProfileSectionTabs";
+import ProfilePostScrollLayer from "@/components/app/ProfilePostScrollLayer";
 
 type ProfileData = {
   user: {
@@ -95,6 +96,7 @@ export default function ProfilePage({ username }: { username: string }) {
         </div>
       </div>
       <div style={{ fontFamily: "'Space Grotesk', sans-serif" }}><ProfileSectionTabs username={username} /></div>
+      <ProfilePostScrollLayer />
       {error && <div className="profile-inline-error">{error}</div>}
       {crop && <div className="modal-backdrop"><div className="cover-editor-modal"><div className="modal-head"><div><div className="eyebrow">PROFILE BANNER</div><h2>Crop your banner to fit</h2></div><button className="icon-btn" onClick={() => setCrop(false)}><X size={18} /></button></div><p className="cover-editor-help">Adjust the position so the important part of your uploaded banner stays visible.</p><div className="cover-editor-preview">{cover ? <img src={cover} alt="Crop preview" style={{ objectPosition: `${x}% ${y}%` }} /> : <div className="cover-grid" />}</div><label>Horizontal position<input type="range" min="0" max="100" value={x} onChange={(e) => setX(Number(e.target.value))} /></label><label>Vertical position<input type="range" min="0" max="100" value={y} onChange={(e) => setY(Number(e.target.value))} /></label><div className="modal-foot"><span>{busy ? "Saving…" : "Preview"}</span><button className="primary-button" disabled={busy || !cover} onClick={() => void saveProfile({ coverUrl: cover, coverPositionX: x, coverPositionY: y })}>Save banner <Check size={14} /></button></div></div></div>}
       {picker && <div className="modal-backdrop"><div className="affiliation-modal"><div className="modal-head"><div><div className="eyebrow">TRUSTED IDENTITY</div><h2>Request an Agent affiliation</h2></div><button className="icon-btn" onClick={() => setPicker(false)}><X size={18} /></button></div><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search verified Agents" /><input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Your role" />{filteredAgents.map((a) => <button className="affiliation-picker-row" key={a.id} onClick={() => void requestAffiliation(a.id)}><span className="org-badge">{a.name.slice(0, 1)}</span><span><strong>{a.name}</strong><small>{a.type} · Verified Agent</small></span><ArrowRight size={14} /></button>)}</div></div>}
