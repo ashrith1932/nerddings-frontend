@@ -5,11 +5,10 @@ import { Bell, CalendarDays, Compass, Home, Layers3, MessageCircle, MoreHorizont
 import { Avatar } from "@/components/ui/Avatar";
 import { Wordmark } from "@/components/brand/BrandMark";
 import { getSavedUser } from "@/lib/api";
-import ProfilePage from "@/components/app/ProfilePage";
+import ProfileStandaloneView from "@/components/app/ProfileStandaloneView";
 import MainContentLayoutFix from "@/components/app/MainContentLayoutFix";
-import RouteVisualFixLayer from "@/components/app/RouteVisualFixLayer";
 import SiteFooter from "@/components/app/SiteFooter";
-import "@/components/app/nerdding-route-surfaces.css";
+import "@/components/app/nerddings-route-surfaces.css";
 
 const primaryNav = [
   ["Home", "/home", Home],
@@ -42,7 +41,6 @@ export default function ProfileRouteOnly({ username }: { username: string }) {
   return (
     <>
       <MainContentLayoutFix />
-      <RouteVisualFixLayer />
       <div className="app-shell">
         <aside className="sidebar">
           <button className="logo-link" onClick={() => navigate("/home")} aria-label="Nerdding home"><Wordmark /></button>
@@ -68,11 +66,11 @@ export default function ProfileRouteOnly({ username }: { username: string }) {
           <button className="mobile-menu" onClick={() => setMenuOpen((value) => !value)} aria-label="Open menu"><span>☰</span></button>
           <div className="page-title">Profile</div>
           <div className="header-search"><Search size={17} /><input placeholder="Search people, projects, ideas" onKeyDown={(e) => { if (e.key === "Enter") navigate(`/search?q=${encodeURIComponent((e.currentTarget as HTMLInputElement).value)}`); }} /></div>
-          <div className="topbar-actions"><button className="header-create" onClick={() => window.dispatchEvent(new CustomEvent("nerdding:open-create-post"))}><Plus size={16} /> Create</button><Avatar user={user as any} size="sm" /></div>
+          <div className="topbar-actions"><button className="header-create" onClick={() => navigate(`/home`)}><Plus size={16} /> Create</button><Avatar user={user as any} size="sm" /></div>
         </header>
-        {menuOpen && <div className="create-popover"><div className="create-popover-head"><span className="eyebrow">MAKE SOMETHING</span><button className="icon-btn" onClick={() => setMenuOpen(false)}><X size={17} /></button></div><button className="create-option" onClick={() => { setMenuOpen(false); window.dispatchEvent(new CustomEvent("nerdding:open-create-post")); }}><span><strong>Create a post</strong><small>Share a build update or idea</small></span><Plus size={15} /></button><button className="create-option" onClick={() => { setMenuOpen(false); navigate("/project/new"); }}><span><strong>Create a project</strong><small>Give your work a home</small></span><Plus size={15} /></button><button className="create-option" onClick={() => { setMenuOpen(false); navigate("/events?create=1"); }}><span><strong>Create an event</strong><small>Bring your community together</small></span><Plus size={15} /></button></div>}
+        {menuOpen && <div className="create-popover"><div className="create-popover-head"><span className="eyebrow">MAKE SOMETHING</span><button className="icon-btn" onClick={() => setMenuOpen(false)}><X size={17} /></button></div><button className="create-option" onClick={() => { setMenuOpen(false); navigate("/home"); }}><span><strong>Create a post</strong><small>Share a build update or idea</small></span><Plus size={15} /></button><button className="create-option" onClick={() => { setMenuOpen(false); navigate("/project/new"); }}><span><strong>Create a project</strong><small>Give your work a home</small></span><Plus size={15} /></button><button className="create-option" onClick={() => { setMenuOpen(false); navigate("/events?create=1"); }}><span><strong>Create an event</strong><small>Bring your community together</small></span><Plus size={15} /></button></div>}
         <main className="app-main">
-          <div className="page-content"><ProfilePage username={username} /></div>
+          <div className="page-content"><ProfileStandaloneView username={username} /></div>
           <SiteFooter />
         </main>
       </div>
