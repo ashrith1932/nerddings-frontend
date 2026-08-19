@@ -103,6 +103,68 @@ export default function RouteVisualFixLayer() {
       body[data-nerdding-enhanced-route] {
         opacity: 1;
       }
+
+      /* Profile is rendered one level below .nerdding-enhanced-route, so the
+         generic .nerdd-route-surface fixed positioning must be neutralized here. */
+      .nerdd-route-surface:has(.profile-section-tabs-wrap) {
+        position: relative !important;
+        inset: auto !important;
+        z-index: auto !important;
+        width: 100% !important;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+      }
+
+      .nerdd-route-surface:has(.profile-section-tabs-wrap) > .view.profile-view {
+        width: min(100%, 1320px) !important;
+        max-width: 1320px !important;
+        margin: 0 auto !important;
+      }
+
+      /* The empty active-post slot must not create a grid row or a gap. */
+      .profile-post-detail-slot:empty {
+        display: none !important;
+      }
+
+      /* Match Home's outer live-grid sizing exactly. */
+      .profile-content-grid {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) 360px !important;
+        column-gap: 24px !important;
+        align-items: start !important;
+        width: min(100%, 1320px) !important;
+        margin: 18px auto 0 !important;
+        min-width: 0 !important;
+      }
+
+      .profile-section-content,
+      .profile-right-rail,
+      .profile-post-detail-slot,
+      .profile-affiliations-rail {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .profile-right-rail {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px !important;
+        align-self: start !important;
+        width: 100% !important;
+      }
+
+      @media (max-width: 920px) {
+        .profile-content-grid {
+          grid-template-columns: minmax(0, 1fr) !important;
+          column-gap: 0 !important;
+          gap: 16px !important;
+        }
+      }
     `}</style>
   );
 }
