@@ -6,6 +6,7 @@ import HashtagEnhancer from "@/components/social/HashtagEnhancer";
 import NerddingInteractionRuntime from "@/components/runtime/NerddingInteractionRuntime";
 import HomeProjectRuntime from "@/components/runtime/HomeProjectRuntime";
 import RouteVisualRuntime from "@/components/runtime/RouteVisualRuntime";
+import CheckmarkRuntime from "@/components/runtime/CheckmarkRuntime";
 import AgentRouteShield from "@/components/agent/AgentRouteShield";
 import AgentVerificationGate2 from "@/components/agent/AgentVerificationGate2";
 import AgentVerificationRedirect from "@/components/agent/AgentVerificationRedirect";
@@ -85,6 +86,7 @@ export default function AppRuntime({ path }: { path: string }) {
 
   return <>
     <RouteVisualRuntime path={path} />
+    <CheckmarkRuntime />
     <NerddingInteractionRuntime />
     {path === "/" || path.startsWith("/home") ? <HomeProjectRuntime /> : null}
     {path === "/" || path.startsWith("/home") || path.startsWith("/explore") ? <HashtagEnhancer /> : null}
