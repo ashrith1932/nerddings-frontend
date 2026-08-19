@@ -82,13 +82,10 @@ export default function ClientAppGate() {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  // Handle open-post event for side panel
   useEffect(() => {
     const handleOpenPost = (e: Event) => {
       const detail = (e as CustomEvent).detail;
-      if (detail?.postId) {
-        setActivePostId(detail.postId);
-      }
+      if (detail?.postId) setActivePostId(detail.postId);
     };
     window.addEventListener("nerdding:open-post", handleOpenPost);
     return () => window.removeEventListener("nerdding:open-post", handleOpenPost);
@@ -231,7 +228,7 @@ export default function ClientAppGate() {
         )}
       {footerTarget && createPortal(<SiteFooter />, footerTarget)}
       <ProfilePostPopupLayer />
-      <NerddingInteractionLayer />
+      {!profile && <NerddingInteractionLayer />}
       <NerddingProjectInteractionLayer />
       <HashtagEnhancer />
       <AgentRouteShield />
