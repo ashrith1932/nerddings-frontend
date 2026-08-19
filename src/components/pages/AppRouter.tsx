@@ -5,7 +5,7 @@ import ProfilePage from "@/components/pages/Profile/ProfilePage";
 import ProjectDetailPage from "@/components/pages/Projects/ProjectDetailPage";
 import ProjectCreatePage from "@/components/pages/Projects/ProjectCreatePage";
 import ActivePost from "@/components/post/ActivePost";
-import { SettingsSurface } from "@/components/pages/Settings/SettingsRoutes";
+import SettingsPage from "@/components/pages/Settings";
 import HomePage from "@/components/pages/Home";
 import ExplorePage from "@/components/pages/Explore";
 import ChartsPage from "@/components/pages/Charts";
@@ -42,7 +42,7 @@ export default function AppRouter({ path }: Props) {
   else if (path.startsWith("/project/") && path !== "/project/new") content = <ProjectDetailPage slug={slug} />;
   else if (path === "/project/new") content = <ProjectCreatePage />;
   else if (path.startsWith("/post/")) content = <ActivePost postId={slug} />;
-  else if (path.startsWith("/settings")) content = <SettingsSurface />;
+  else if (path.startsWith("/settings")) content = <SettingsPage />;
   else if (path.startsWith("/explore")) content = <ExplorePage />;
   else if (path.startsWith("/events")) content = <EventsPage />;
   else if (path.startsWith("/messages")) content = <MessagesPage />;
