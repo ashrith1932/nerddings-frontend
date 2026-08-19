@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Bell, CalendarDays, Compass, Home, Layers3, MessageCircle, MoreHorizontal, Plus, Rocket, Search, Settings, TrendingUp, UserRound, X } from "lucide-react";
 import { Avatar, VerifiedMark } from "@/components/ui/Avatar";
+import { Wordmark } from "@/components/brand/BrandMark";
 import { Toast } from "@/components/ui/Toast";
 import { apiFetch, getAuthToken, getSavedUser } from "@/lib/api";
 import ProfilePage from "@/components/app/ProfilePage";
@@ -74,7 +75,9 @@ function LoginlessShell({ path, onCreate, onMenu, menuOpen, onCloseMenu }: { pat
   return (
     <>
       <aside className="sidebar">
-        <button className="logo-link" onClick={() => navigate("/home")}>Nerdding</button>
+        <button className="logo-link" onClick={() => navigate("/home")} aria-label="Nerdding home">
+          <Wordmark />
+        </button>
         <div className="sidebar-label">Workspace</div>
         <nav className="main-nav">
           {primaryNav.map(([label, href, Icon]) => (
