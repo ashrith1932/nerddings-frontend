@@ -4,6 +4,7 @@ import { Bell, CalendarDays, Compass, Home, Layers3, MessageCircle, MoreHorizont
 import { Avatar } from "@/components/ui/Avatar";
 import { Wordmark } from "@/components/brand/BrandMark";
 import { getSavedUser } from "@/lib/api";
+import SiteFooter from "@/components/app/SiteFooter";
 
 const primaryNav = [
   ["Home", "/home", Home],
@@ -79,6 +80,7 @@ export default function AppShell({ path, menuOpen, onToggleMenu, onCloseMenu, ch
       {menuOpen && <div className="create-popover"><div className="create-popover-head"><span className="eyebrow">MAKE SOMETHING</span><button className="icon-btn" onClick={onCloseMenu}><X size={17} /></button></div><button className="create-option" onClick={() => { onCloseMenu(); window.dispatchEvent(new CustomEvent("nerdding:open-composer")); }}><span><strong>Create a post</strong><small>Share a build update or idea</small></span><Plus size={15} /></button><button className="create-option" onClick={() => { onCloseMenu(); navigate("/project/new"); }}><span><strong>Create a project</strong><small>Give your work a home</small></span><Plus size={15} /></button><button className="create-option" onClick={() => { onCloseMenu(); navigate("/events?create=1"); }}><span><strong>Create an event</strong><small>Bring your community together</small></span><Plus size={15} /></button></div>}
       <main className="app-main">
         <div className="page-content">{children}</div>
+        <SiteFooter />
       </main>
     </>
   );
