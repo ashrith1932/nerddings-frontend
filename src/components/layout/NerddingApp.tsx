@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import MainContentLayoutFix from "@/components/app/MainContentLayoutFix";
-import RouteVisualFixLayer from "@/components/app/RouteVisualFixLayer";
+import MainContentLayoutFix from "@/components/shell/MainContentLayoutFix";
 import AppShell from "@/components/shell/AppShell";
 import AppRouter from "@/components/pages/AppRouter";
 import AppRuntime from "@/components/runtime/AppRuntime";
@@ -21,21 +20,13 @@ export function NerddingApp() {
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  return (
-    <>
-      <MainContentLayoutFix />
-      <RouteVisualFixLayer />
-      <AppShell
-        path={path}
-        menuOpen={menuOpen}
-        onToggleMenu={() => setMenuOpen((value) => !value)}
-        onCloseMenu={() => setMenuOpen(false)}
-      >
-        <AppRouter path={path} />
-      </AppShell>
-      <AppRuntime path={path} />
-    </>
-  );
+  return <>
+    <MainContentLayoutFix />
+    <AppShell path={path} menuOpen={menuOpen} onToggleMenu={() => setMenuOpen((value) => !value)} onCloseMenu={() => setMenuOpen(false)}>
+      <AppRouter path={path} />
+    </AppShell>
+    <AppRuntime path={path} />
+  </>;
 }
 
 export default NerddingApp;
