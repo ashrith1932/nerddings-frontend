@@ -38,36 +38,39 @@ export default function RouteVisualFixLayer() {
     };
     document.addEventListener("click", onDocumentClick);
 
+    const eligible = (node: Element) =>
+      node.matches(
+        ".home-post, .profile-tab-loading-more, .profile-tab-sentinel, .profile-tab-end, .profile-tab-skeleton-list",
+      );
+
     const wrapProfilePosts = () => {
-      const containers = Array.from(document.querySelectorAll<HTMLElement>(".profile-section-content"));
+      const containers = Array.from(
+        document.querySelectorAll<HTMLElement>(".profile-section-content"),
+      );
+
       containers.forEach((container) => {
-        const existing = container.querySelector<HTMLElement>(":scope > .profile-posts-scroll");
-        const directPosts = Array.from(container.children).filter((child) => child.classList.contains("home-post"));
+        let wrapper = container.querySelector<HTMLElement>(
+          ":scope > .profile-posts-scroll",
+        );
 
-        if (!directPosts.length) {
-          if (existing) {
-            while (existing.firstChild) container.insertBefore(existing.firstChild, existing);
-            existing.remove();
-          }
-          return;
+        const directEligible = Array.from(container.children).filter(eligible);
+
+        if (!wrapper) {
+          if (!directEligible.length) return;
+          wrapper = document.createElement("div");
+          wrapper.className = "profile-posts-scroll";
+          wrapper.setAttribute("data-profile-post-scroll", "true");
+          container.insertBefore(wrapper, directEligible[0]);
         }
 
-        const wrapper = existing ?? document.createElement("div");
-        wrapper.className = "profile-posts-scroll";
-        if (!existing) {
-          const firstPost = directPosts[0];
-          container.insertBefore(wrapper, firstPost);
-        }
-
-        const directChildren = Array.from(container.children);
-        const startIndex = directChildren.indexOf(wrapper);
-        const afterWrapper = Array.from(container.children).slice(startIndex + 1);
-        afterWrapper.forEach((child) => wrapper.appendChild(child));
+        directEligible.forEach((node) => wrapper!.appendChild(node));
       });
     };
 
     wrapProfilePosts();
-    const observer = new MutationObserver(() => wrapProfilePosts());
+    const observer = new MutationObserver(() => {
+      wrapProfilePosts();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
@@ -114,12 +117,16 @@ export default function RouteVisualFixLayer() {
       }
       .profile-posts-scroll {
         min-width: 0 !important;
+        min-height: 0 !important;
         max-height: calc(100dvh - 170px) !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
         overscroll-behavior: contain !important;
         padding-right: 4px !important;
         scrollbar-gutter: stable !important;
+      }
+      .profile-posts-scroll > .home-post:last-of-type {
+        margin-bottom: 0 !important;
       }
       .profile-right-rail {
         display: grid !important;
@@ -129,7 +136,6 @@ export default function RouteVisualFixLayer() {
         width: 100% !important;
       }
 
-      /* Home and Profile use deliberately wider active-post rails. */
       .home-live-grid:has(> .home-active-post),
       .home-live-grid:has(.home-info-rail > .home-active-post) {
         grid-template-columns: minmax(0, 1fr) 420px !important;
@@ -194,9 +200,16 @@ export default function RouteVisualFixLayer() {
           max-width: 100% !important;
         }
         .profile-posts-scroll {
+          max-height: calc(100dvh - 230px) !important;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .profile-posts-scroll {
           max-height: none !important;
           overflow: visible !important;
           padding-right: 0 !important;
+          scrollbar-gutter: auto !important;
         }
       }
     `}</style>
