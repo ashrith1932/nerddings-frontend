@@ -16,30 +16,25 @@ export default function ProfilePostPopupLayer(){
   const [loading,setLoading]=useState(false);
 
   useEffect(()=>{
-    const open=(id:string)=>{if(!id)return;setLoading(true);setPostId(id);setLoading(false)};
-    const onOpen=(event:Event)=>{const id=(event as CustomEvent<{postId?:string}>).detail?.postId;if(id)open(String(id))};
-    const onClick=(event:MouseEvent)=>{
-      const target=event.target as HTMLElement|null;
-      if(!target||target.closest(".active-post-side-layer"))return;
-      const profileRow=target.closest<HTMLElement>(".profile-post-row");
-      if(!profileRow)return;
-      if(target.closest("button,a,input,textarea,video,.home-author,.home-project,.home-link")&&!target.closest(".nerdd-quote"))return;
-      event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
-      setLoading(true);
-      if(profileRow){
-        const rows=[...document.querySelectorAll<HTMLElement>(".profile-post-row")];
-        const index=rows.indexOf(profileRow);const username=window.location.pathname.split("/")[2]??"";
-        if(index<0||!username){setLoading(false);return}
-        void apiFetch<any>(`/social/users/${encodeURIComponent(username)}/profile-live`).then(r=>{const post=r.data?.posts?.[index];if(post?.id)setPostId(String(post.id))}).finally(()=>setLoading(false));
-        return;
-      }
+    const onOpen=(event:Event)=>{
+      const id=(event as CustomEvent<{postId?:string}>).detail?.postId;
+      if(!id)return;
+      setLoading(false);
+      setPostId(String(id));
     };
-    document.addEventListener("click",onClick,true);window.addEventListener("nerdding:open-post",onOpen as EventListener);
-    return()=>{document.removeEventListener("click",onClick,true);window.removeEventListener("nerdding:open-post",onOpen as EventListener)};
+    window.addEventListener("nerdding:open-profile-post",onOpen as EventListener);
+    return()=>window.removeEventListener("nerdding:open-profile-post",onOpen as EventListener);
   },[]);
 
-  useEffect(()=>{const active=Boolean(postId||loading);if(!active)return;const previous=document.body.style.overflow;document.body.style.overflow="hidden";return()=>{document.body.style.overflow=previous}},[postId,loading]);
+  useEffect(()=>{
+    const active=Boolean(postId||loading);
+    if(!active)return;
+    const previous=document.body.style.overflow;
+    document.body.style.overflow="hidden";
+    return()=>{document.body.style.overflow=previous};
+  },[postId,loading]);
+
   if(!postId&&!loading)return null;
   const close=()=>{setPostId(null);setLoading(false)};
-  return createPortal(<><style>{css}</style><div className="active-post-side-layer" role="dialog" aria-modal="true" onMouseDown={e=>{if(e.target===e.currentTarget)close()}}><section className="active-post-side-panel" onMouseDown={e=>e.stopPropagation()}><header className="active-post-side-head"><button onClick={close}><ArrowLeft size={15}/> Back to feed</button><button className="active-post-side-close" onClick={close} aria-label="Close post"><X size={18}/></button></header><div className="active-post-side-body">{loading&&!postId?<div className="active-post-side-loading"><span><Loader2 size={16}/> Opening post…</span></div>:postId?<PostDetailSurface postId={postId}/>:null}</div></section></div></>,document.body);
+  return createPortal(<><style>{css}</style><div className="active-post-side-layer" role="dialog" aria-modal="true" onMouseDown={e=>{if(e.target===e.currentTarget)close()}}><section className="active-post-side-panel" onMouseDown={e=>e.stopPropagation()}><header className="active-post-side-head"><button onClick={close}><ArrowLeft size={15}/> Back to profile</button><button className="active-post-side-close" onClick={close} aria-label="Close post"><X size={18}/></button></header><div className="active-post-side-body">{loading&&!postId?<div className="active-post-side-loading"><span><Loader2 size={16}/> Opening post…</span></div>:postId?<PostDetailSurface postId={postId}/>:null}</div></section></div></>,document.body);
 }
