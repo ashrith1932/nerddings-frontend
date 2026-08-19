@@ -8,7 +8,6 @@ import { getSavedUser } from "@/lib/api";
 import ProfileStandaloneView from "@/components/app/ProfileStandaloneView";
 import MainContentLayoutFix from "@/components/app/MainContentLayoutFix";
 import SiteFooter from "@/components/app/SiteFooter";
-import "@/components/app/nerddings-route-surfaces.css";
 
 const primaryNav = [
   ["Home", "/home", Home],
