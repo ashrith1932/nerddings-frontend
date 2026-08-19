@@ -49,7 +49,7 @@ interface ProjectRef {
   slug: string;
   description: string;
   stage: string;
-  githubUrl?: string | null;
+  github_url?: string | null;
 }
 
 interface QuotePostRef {

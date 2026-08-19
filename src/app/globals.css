@@ -772,3 +772,585 @@ body { overflow-x: hidden; }
     gap: 8px;
   }
 }
+/* Two-Column Layout Container */
+.nerdding-enhanced-route {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  padding: 28px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.nerdding-enhanced-route.full-width {
+  grid-template-columns: 1fr;
+}
+
+/* Main Feed Column */
+.nerdding-feed-column {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Side Panel (Post Detail) */
+.nerdding-side-panel {
+  position: sticky;
+  top: 28px;
+  height: fit-content;
+  background: #fbfaf7;
+  border: 1px solid #e4ded5;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.nerdding-side-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.nerdding-side-panel-title {
+  flex: 1;
+}
+
+.nerdding-side-panel-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #8b8680;
+  text-transform: uppercase;
+  margin: 0;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.nerdding-side-panel-heading {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.nerdding-side-panel-close {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: #8b8680;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.nerdding-side-panel-close:hover {
+  background: #e8e3dc;
+  color: #1a1a1a;
+}
+
+/* Post Detail Card */
+.post-detail-view {
+  max-width: 100%;
+}
+
+.post-detail-card {
+  background: white;
+  border: 1px solid #e4ded5;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.post-detail-author-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: 16px;
+  transition: opacity 0.2s ease;
+}
+
+.post-detail-author-button:hover {
+  opacity: 0.7;
+}
+
+.post-detail-author-button span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.post-detail-author-button strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.post-detail-author-button small {
+  font-size: 13px;
+  color: #8b8680;
+  margin: 0;
+}
+
+.post-detail-time {
+  display: block;
+  font-size: 13px;
+  color: #8b8680;
+  margin-bottom: 12px;
+}
+
+.post-detail-copy {
+  font-size: 16px;
+  color: #1a1a1a;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+  word-break: break-word;
+}
+
+/* Media */
+.post-detail-media {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.post-detail-media-1 {
+  grid-template-columns: 1fr;
+}
+
+.post-detail-media-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.post-detail-media-3 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+
+.post-detail-media-3 > *:first-child {
+  grid-row: 1 / 3;
+}
+
+.post-detail-media-4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.post-detail-media img,
+.post-detail-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Quote Post */
+.post-detail-quote {
+  border: 1px solid #e4ded5;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+  background: #fbfaf7;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.post-detail-quote:hover {
+  background: #f3ede4;
+}
+
+.post-detail-quote-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #8b8680;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.post-detail-quote p {
+  font-size: 14px;
+  color: #1a1a1a;
+  margin: 8px 0;
+  line-height: 1.4;
+}
+
+/* Action Bar */
+.post-detail-actionbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e4ded5;
+  gap: 12px;
+}
+
+.post-detail-actionbar > div {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.post-detail-actionbar span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #8b8680;
+}
+
+.post-detail-actionbar button {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: #8b8680;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.post-detail-actionbar button:hover {
+  background: #e8e3dc;
+  color: #d97706;
+}
+
+.post-detail-actionbar button.action-active {
+  color: #d97706;
+}
+
+/* Comments Section */
+.post-detail-comments {
+  background: white;
+  border: 1px solid #e4ded5;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.post-detail-comments .eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #8b8680;
+  text-transform: uppercase;
+  margin: 0 0 8px 0;
+}
+
+.post-detail-comments h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 16px 0;
+}
+
+/* Comment Composer */
+.post-detail-compose {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e4ded5;
+}
+
+.post-detail-compose input {
+  flex: 1;
+  background: #f8f6f2;
+  border: 1px solid #e4ded5;
+  border-radius: 20px;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #1a1a1a;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.post-detail-compose input:focus {
+  outline: none;
+  background: white;
+  border-color: #d97706;
+}
+
+.post-detail-compose input::placeholder {
+  color: #8b8680;
+}
+
+.post-detail-compose button {
+  background: #3a3a3a;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 14px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.post-detail-compose button:hover:not(:disabled) {
+  background: #1a1a1a;
+}
+
+.post-detail-compose button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Comments Thread */
+.post-detail-comments-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.post-comment {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8e3dc;
+}
+
+.post-comment:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.post-comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.post-comment-meta strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.post-comment-meta small {
+  font-size: 12px;
+  color: #8b8680;
+}
+
+.post-comment-text {
+  font-size: 14px;
+  color: #1a1a1a;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.post-comment-reply {
+  font-size: 12px;
+  color: #d97706;
+  cursor: pointer;
+  margin-top: 6px;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.post-comment-reply:hover {
+  opacity: 0.7;
+}
+
+/* Nested Comments */
+.post-comment-nested {
+  margin-left: 32px;
+  margin-top: 12px;
+}
+
+/* Project Button */
+.post-detail-project {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  margin: 12px 0;
+  padding: 12px;
+  background: #fbfaf7;
+  border: 1px solid #e4ded5;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.post-detail-project:hover {
+  background: #f3ede4;
+}
+
+/* Link Button */
+.post-detail-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 12px;
+  background: #fbfaf7;
+  border: 1px solid #e4ded5;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #d97706;
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+}
+
+.post-detail-link:hover {
+  background: #f3ede4;
+}
+
+/* Skeleton Loading */
+.skeleton-block {
+  background: linear-gradient(90deg, #e8e3dc 25%, #f3ede4 50%, #e8e3dc 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 8px;
+  height: 100px;
+}
+
+.skeleton-block.skeleton-hero {
+  height: 250px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .nerdding-enhanced-route {
+    grid-template-columns: 1fr 320px;
+    gap: 16px;
+    padding: 20px 16px;
+  }
+
+  .nerdding-side-panel {
+    top: 20px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nerdding-enhanced-route {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .nerdding-side-panel {
+    position: static;
+    top: auto;
+    margin-top: 24px;
+  }
+
+  .post-detail-media-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .post-detail-media-3 > *:first-child {
+    grid-row: auto;
+  }
+
+  .post-comment-nested {
+    margin-left: 16px;
+  }
+}
+
+/* Back Button */
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  color: #d97706;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+  background: #fef3c7;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  background: #fbfaf7;
+  border: 1px solid #e4ded5;
+  border-radius: 12px;
+}
+
+.empty-state strong {
+  font-size: 16px;
+  color: #1a1a1a;
+}
+
+.empty-state span {
+  font-size: 14px;
+  color: #8b8680;
+}
+
+.outline-button {
+  background: white;
+  border: 1px solid #d97706;
+  color: #d97706;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.outline-button:hover {
+  background: #fef3c7;
+}
+
+/* Nerding Spin Animation */
+.nerdd-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

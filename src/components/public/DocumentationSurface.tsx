@@ -18,7 +18,7 @@ const docs = [
   { slug: "contact", label: "Contact & requests", eyebrow: "SUPPORT", title: "Questions, privacy requests and reports", intro: "Use the appropriate support channel for account, privacy, legal, safety or content concerns." },
 ] as const;
 
-const sections: Record<string, Array<{ heading: string; body: string[]; bullets?: string[] }>> = {
+const sections: Record<string, Array<{ heading: string; body?: string[]; bullets?: string[] }>> = {
   about: [
     { heading: "What Nerdding is", body: ["Nerdding is designed around the process of building rather than only finished credentials. A profile can represent a person, an organization or an Agent, while posts and projects provide context about the work behind that identity.", "The network combines public discovery with private communication. People can publish build notes, attach projects, discover builders, follow accounts, interact with posts, save useful work and participate in events or fundraising surfaces where available."] },
     { heading: "What we are trying to enable", body: ["The goal is to make useful work easier to discover and make meaningful progress easier to communicate. A project can accumulate a chronological build history through project-linked posts, while a verified Agent can maintain an affiliation and role history."] },
