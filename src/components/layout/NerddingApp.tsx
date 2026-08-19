@@ -407,7 +407,7 @@ export function NerddingApp() {
   const handleSearch = (value: string) => { setQuery(value); if (value.length > 1) navigate(`/search?q=${encodeURIComponent(value)}`); };
   const handlePost = async (text: string, media: { path: string; publicUrl: string; mimeType: string }[]) => { const result = await apiFetch<{ data: { id: string } }>("/posts", { method: "POST", body: JSON.stringify({ body: text, media }) }); setPosts((current) => [{ id: result.data.id, author: currentUser, type: "Build update", time: "now", text, likes: 0, comments: 0, reposts: 0 }, ...current]); showToast("Your update is live"); };
   let content: React.ReactNode;
-  if (pathname.startsWith("/search")) content = <SearchView query={query} />;
+  if (pathname.startsWith("/search")) content = <div className="legacy-route-placeholder" aria-hidden="true" />;
   else if (pathname.startsWith("/explore")) content = <ExploreViewNew onToast={showToast} />;
   else if (pathname.startsWith("/charts")) content = <ChartsViewNew />;
   else if (pathname.startsWith("/fundraising")) content = <FundraisingViewNew onToast={showToast} />;

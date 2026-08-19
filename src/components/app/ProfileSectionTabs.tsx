@@ -354,18 +354,20 @@ export default function ProfileSectionTabs({ username }: { username: string }) {
   const [data, setData] = useState<ProfileResponse["data"] | null>(null);
   const [tab, setTab] = useState<Tab>("builds");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [addAgentOpen, setAddAgentOpen] = useState(false);
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setError("");
     apiFetch<ProfileResponse>(
       `/social/users/${encodeURIComponent(username)}/profile-live`,
     )
       .then((r) => {
         if (active) setData(r.data);
       })
-      .catch(() => {
-        if (active) setData(null);
+      .catch((requestError) => {
+        if (active) { setData(null); setError(requestError instanceof Error ? requestError.message : "Profile sections could not be loaded."); }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -384,12 +386,7 @@ export default function ProfileSectionTabs({ username }: { username: string }) {
         ),
     [data],
   );
-  if (!data)
-    return loading ? (
-      <div className="profile-tabs-loading">
-        <span />
-      </div>
-    ) : null;
+  if (!data) return loading ? <div className="profile-tabs-loading" aria-label="Loading profile sections"><div className="profile-tabs-loading-nav"><i /><i /><i /><i /></div><div className="profile-tabs-loading-grid"><div><i /><i /><i /></div><aside><i /><i /><i /></aside></div></div> : <div className="profile-tab-empty profile-tabs-error"><Activity size={20} /><strong>Profile sections unavailable</strong><span>{error || "Try refreshing this profile."}</span></div>;
   const people =
     tab === "followers" ? (data.followers ?? []) : (data.following ?? []);
   const own =
