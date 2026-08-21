@@ -1,5 +1,5 @@
 "use client";
 
-export default function ProfileSectionTabs() {
+export default function ProfileSectionTabs(props: any) {
   return null;
 }

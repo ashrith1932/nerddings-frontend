@@ -1,13 +1,235 @@
 "use client";
+
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
-import { ArrowRight, ArrowUpRight, Check, Github, Loader2, Plus, Rocket, Search } from "lucide-react";
-import { apiFetch, getAuthToken, getSavedUser } from "@/lib/api";
-type Person={id:string;name:string;username:string;avatar_url?:string|null;avatarUrl?:string|null;kind?:string};
-type Project={id:string;name:string;slug:string;description:string;stage:string;githubUrl?:string|null;createdAt?:string;owner?:Person|null;agent?:{id:string;name:string;verified?:boolean}|null;contributors?:Array<{user_id:string;name:string;username:string;avatar_url?:string|null}>;posts?:Array<{id:string;body:string;created_at:string}>};
-const avatar=(p?:Person|null)=>p?.avatarUrl??p?.avatar_url;const nav=(p:string)=>{window.history.pushState({},"",p);window.dispatchEvent(new PopStateEvent("popstate"))};
-function Avatar({p}:{p?:Person|null}){return <span className="nerdd-proj-avatar">{avatar(p)?<img src={avatar(p)??undefined} alt=""/>:(p?.name??"N").slice(0,2).toUpperCase()}</span>}
-function Skeleton(){return <div className="nerdd-proj-skeleton"><div className="nerdd-shim hero"/><div className="nerdd-proj-cols"><div className="nerdd-shim large"/><div className="nerdd-shim side"/></div></div>}
-function CreateProject(){const[name,setName]=useState("");const[description,setDescription]=useState("");const[stage,setStage]=useState("Idea");const[githubUrl,setGithubUrl]=useState("");const[busy,setBusy]=useState(false);const[error,setError]=useState("");const submit=async()=>{if(!name.trim()||!description.trim()||busy)return;setBusy(true);setError("");try{const r=await apiFetch<{data:{slug:string}}>("/social/projects",{method:"POST",body:JSON.stringify({name:name.trim(),description:description.trim(),stage,githubUrl:githubUrl.trim()||null})});if(!r.data?.slug)throw new Error("Project was created but no URL was returned.");nav(`/project/${encodeURIComponent(r.data.slug)}`)}catch(e){setError(e instanceof Error?e.message:"Project could not be created.")}finally{setBusy(false)}};return <div className="nerdd-proj-page"><div className="nerdd-proj-head"><small>YOUR WORK</small><h1>Create a project</h1><p>A permanent home for your work, updates and collaborators.</p></div><section className="nerdd-proj-form"><label>Project name<input value={name} onChange={e=>setName(e.target.value)} placeholder="Project name"/></label><label>Description<textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="What are you building?"/></label><label>Stage<select value={stage} onChange={e=>setStage(e.target.value)}><option>Idea</option><option>Prototype</option><option>Building</option><option>Beta</option><option>Launched</option><option>Fundraising</option></select></label><label>GitHub repository <small>optional</small><input value={githubUrl} onChange={e=>setGithubUrl(e.target.value)} placeholder="https://github.com/owner/repository"/></label>{error&&<p className="nerdd-proj-error">{error}</p>}<footer><button className="nerdd-proj-secondary" onClick={()=>nav(getSavedUser()?.username?`/profile/${encodeURIComponent(getSavedUser()!.username)}`:"/home")}>Cancel</button><button className="nerdd-proj-primary" disabled={busy||!name.trim()||!description.trim()} onClick={()=>void submit()}>{busy?<><Loader2 className="nerdd-spin" size={15}/>Creating…</>:<>Create project <ArrowRight size={15}/></>}</button></footer></section></div>}
-function Details({slug}:{slug:string}){const[p,setP]=useState<Project|null>(null);const[members,setMembers]=useState<Project["contributors"]>([]);const[loading,setLoading]=useState(true);const[error,setError]=useState("");const[candidate,setCandidate]=useState("");const[suggestions,setSuggestions]=useState<Person[]>([]);const[inviteBusy,setInviteBusy]=useState(false);const load=async()=>{setLoading(true);setError("");const[a,b]=await Promise.allSettled([apiFetch<{data:Project}>(`/projects/${encodeURIComponent(slug)}`),apiFetch<{data:Project["contributors"]}>(`/social/projects/${encodeURIComponent(slug)}/members`)]);if(a.status==="fulfilled")setP(a.value.data);else setError(a.reason instanceof Error?a.reason.message:"Project could not be loaded.");if(b.status==="fulfilled")setMembers(b.value.data??[]);setLoading(false)};useEffect(()=>{void load()},[slug]);useEffect(()=>{if(!candidate.trim()){setSuggestions([]);return}const t=window.setTimeout(()=>apiFetch<{data:Person[]}>(`/social/mentions?q=${encodeURIComponent(candidate)}`).then(r=>setSuggestions((r.data??[]).filter(x=>x.kind==="user"))).catch(()=>setSuggestions([])),150);return()=>window.clearTimeout(t)},[candidate]);const viewer=getSavedUser();const owner=Boolean(p&&viewer&&p.owner&&String(p.owner.id)===String(viewer.id));const invite=async(person:Person)=>{if(inviteBusy)return;setInviteBusy(true);try{await apiFetch(`/social/projects/${encodeURIComponent(slug)}/invitations`,{method:"POST",body:JSON.stringify({userId:person.id})});setCandidate("");setSuggestions([]);await load()}catch(e){setError(e instanceof Error?e.message:"Invitation failed.")}finally{setInviteBusy(false)}};if(loading)return <Skeleton/>;if(!p)return <div className="nerdd-proj-empty"><strong>Project could not be loaded.</strong><span>{error||"Check the project URL."}</span><button onClick={()=>void load()}>Try again</button></div>;return <div className="nerdd-proj-page"><button className="nerdd-proj-back" onClick={()=>nav(viewer?.username?`/profile/${encodeURIComponent(viewer.username)}`:"/home")}>← Back</button><section className="nerdd-proj-hero"><div className="nerdd-proj-mark"><Rocket size={23}/></div><div><small>PROJECT · {p.stage.toUpperCase()}</small><h1>{p.name}</h1><p>{p.description}</p><div className="nerdd-proj-pills"><span>Owner @{p.owner?.username}</span>{p.agent&&<span>{p.agent.name}{p.agent.verified?" ✓":""}</span>}</div></div></section><div className="nerdd-proj-cols"><main><section className="nerdd-proj-card"><header><div><small>PROJECT</small><h2>Details</h2></div><span>{p.stage}</span></header><div className="nerdd-proj-detail"><span>Owner</span><button onClick={()=>p.owner?.username&&nav(`/profile/${encodeURIComponent(p.owner.username)}`)}>@{p.owner?.username}</button></div><div className="nerdd-proj-detail"><span>Created</span><strong>{p.createdAt?new Date(p.createdAt).toLocaleDateString():"—"}</strong></div>{p.agent&&<div className="nerdd-proj-detail"><span>Organization</span><strong>{p.agent.name}</strong></div>}{p.githubUrl&&<a className="nerdd-proj-github" href={p.githubUrl} target="_blank" rel="noreferrer"><Github size={17}/><span><strong>GitHub repository</strong><small>{p.githubUrl}</small></span><ArrowUpRight size={15}/></a>}</section><section className="nerdd-proj-card"><header><div><small>BUILD LOG</small><h2>Recent updates</h2></div><span>{p.posts?.length??0}</span></header>{p.posts?.length?p.posts.map(x=><article className="nerdd-proj-update" key={x.id}><strong>{x.body}</strong><small>{new Date(x.created_at).toLocaleString()}</small></article>):<div className="nerdd-proj-empty-inline">No project updates yet. Attach this project when publishing a post.</div>}</section></main><aside><section className="nerdd-proj-card"><header><div><small>PEOPLE</small><h2>Collaborators</h2></div><span>{members?.length??0}</span></header>{members?.map(x=><button className="nerdd-proj-member" key={x.user_id} onClick={()=>nav(`/profile/${encodeURIComponent(x.username)}`)}><Avatar p={{id:x.user_id,name:x.name,username:x.username,avatar_url:x.avatar_url}}/><span><strong>{x.name}</strong><small>@{x.username}</small></span><Check size={14}/></button>)}{!members?.length&&<div className="nerdd-proj-empty-inline">No collaborators yet.</div>}</section>{owner&&<section className="nerdd-proj-card"><header><div><small>GROW THE TEAM</small><h2>Invite collaborator</h2></div><Plus size={16}/></header><div className="nerdd-proj-search"><Search size={15}/><input value={candidate} onChange={e=>setCandidate(e.target.value)} placeholder="Search username"/></div>{suggestions.length>0&&<div className="nerdd-proj-suggestions">{suggestions.map(x=><button key={x.id} disabled={inviteBusy} onClick={()=>void invite(x)}><Avatar p={x}/><span><strong>{x.name}</strong><small>@{x.username}</small></span><Plus size={14}/></button>)}</div>}<p className="nerdd-proj-help">Invited builders receive a notification and can accept the collaboration.</p></section>}</aside></div></div>}
-export default function ProjectSurface(){const[path,setPath]=useState(()=>typeof window==="undefined"?"/":window.location.pathname);useEffect(()=>{const s=()=>setPath(window.location.pathname);window.addEventListener("popstate",s);return()=>window.removeEventListener("popstate",s)},[]);const active=path==="/project/new"||path.startsWith("/project/");useEffect(()=>{document.documentElement.classList.toggle("nerdd-project-surface",active);const title=document.querySelector<HTMLElement>(".page-title");const navItems=Array.from(document.querySelectorAll<HTMLElement>(".nav-item"));const mobile=Array.from(document.querySelectorAll<HTMLElement>(".mobile-nav button"));if(active){if(title)title.textContent="Project";navItems.forEach(x=>x.classList.remove("nav-item-active"));mobile.forEach(x=>x.classList.remove("mobile-active"))}return()=>document.documentElement.classList.remove("nerdd-project-surface")},[active]);if(!active||!getAuthToken())return null;const slug=decodeURIComponent(path.split("/")[2]||"");return createPortal(path==="/project/new"?<CreateProject/>:<Details slug={slug}/>,document.body)}
+import { ArrowRight, Loader2, X } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+
+export default function ProjectCreatePage({ onClose }: { onClose?: () => void }) {
+  const [mounted, setMounted] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [stage, setStage] = useState("Idea");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setMounted(true);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      window.history.pushState({}, "", "/home");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    }
+  };
+
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
+    };
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [onClose]);
+
+  const submit = async () => {
+    if (!name.trim() || !description.trim() || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const r = await apiFetch<{ data: { slug: string } }>("/social/projects", {
+        method: "POST",
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim(),
+          stage,
+          githubUrl: githubUrl.trim() || null
+        })
+      });
+      if (!r.data?.slug) throw new Error("Project was created but no URL slug was returned.");
+      
+      // Update browser URL and trigger router update
+      window.history.pushState({}, "", `/project/${encodeURIComponent(r.data.slug)}`);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Project could not be created.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <>
+      <style>{modalStyles}</style>
+      <div className="project-detail-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) handleClose(); }}>
+        <div className="project-detail-modal" style={{ width: "min(520px, 95vw)", height: "auto", maxHeight: "min(640px, 90vh)" }}>
+          <header className="project-detail-header">
+            <div className="project-detail-header-left">
+              <h2 style={{ fontSize: "16px", margin: 0, fontWeight: 700, fontFamily: "Space Grotesk" }}>Create a project</h2>
+            </div>
+            <button className="project-detail-close" onClick={handleClose} aria-label="Close modal"><X size={16} /></button>
+          </header>
+          <div className="project-detail-body-scroll">
+            <div className="create-proj-form">
+              <p style={{ margin: "0 0 4px 0", fontSize: "12px", color: "var(--muted)" }}>
+                A permanent home for your work, updates and collaborators.
+              </p>
+
+              <div className="create-proj-field">
+                <label htmlFor="proj-name">Project name</label>
+                <input
+                  id="proj-name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="e.g. Antigravity AI"
+                  disabled={busy}
+                />
+              </div>
+
+              <div className="create-proj-field">
+                <label htmlFor="proj-desc">Description</label>
+                <textarea
+                  id="proj-desc"
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="What are you building?"
+                  disabled={busy}
+                />
+              </div>
+
+              <div className="create-proj-field">
+                <label htmlFor="proj-stage">Stage</label>
+                <select
+                  id="proj-stage"
+                  value={stage}
+                  onChange={e => setStage(e.target.value)}
+                  disabled={busy}
+                >
+                  <option>Idea</option>
+                  <option>Prototype</option>
+                  <option>Building</option>
+                  <option>Beta</option>
+                  <option>Launched</option>
+                  <option>Fundraising</option>
+                </select>
+              </div>
+
+              <div className="create-proj-field">
+                <label htmlFor="proj-github">GitHub repository <span style={{ textTransform: "lowercase", fontWeight: 400, opacity: 0.8 }}>(optional)</span></label>
+                <input
+                  id="proj-github"
+                  value={githubUrl}
+                  onChange={e => setGithubUrl(e.target.value)}
+                  placeholder="https://github.com/owner/repo"
+                  disabled={busy}
+                />
+              </div>
+
+              {error && (
+                <div style={{
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  background: "#fff5f1",
+                  border: "1px solid #efd4ca",
+                  color: "var(--accent-dark)",
+                  fontSize: "11px",
+                  lineHeight: 1.4
+                }}>
+                  {error}
+                </div>
+              )}
+
+              <div className="create-proj-actions">
+                <button
+                  type="button"
+                  className="outline-button"
+                  onClick={handleClose}
+                  disabled={busy}
+                  style={{ padding: "8px 16px", fontSize: "12px" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="primary-button"
+                  disabled={busy || !name.trim() || !description.trim()}
+                  onClick={() => void submit()}
+                  style={{ padding: "8px 16px", fontSize: "12px" }}
+                >
+                  {busy ? (
+                    <><Loader2 className="nerdd-spin" size={13} /> Creating…</>
+                  ) : (
+                    <>Create project <ArrowRight size={13} /></>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+}
+
+const modalStyles = `
+.create-proj-form {
+  padding: 20px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.create-proj-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.create-proj-field label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.create-proj-field input,
+.create-proj-field textarea,
+.create-proj-field select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.create-proj-field input:focus,
+.create-proj-field textarea:focus,
+.create-proj-field select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(228,87,46,0.1);
+}
+.create-proj-field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.create-proj-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+`;

@@ -3,7 +3,6 @@ import "./globals.css";
 import "@/components/social/social-enhancer.css";
 import "@/components/social/social-enhancer-overrides.css";
 import "@/components/ui/container-skeleton.css";
-import InteractionCreateLayer from "@/components/app/InteractionCreateLayer";
 
 export const metadata: Metadata = {
   title: "Nerddings — A Network for People Building Things",
@@ -77,5 +76,5 @@ body[data-app-route="/home"] .home-info-rail{width:380px}
 `;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><style dangerouslySetInnerHTML={{ __html: productPolish }} />{children}<InteractionCreateLayer /></body></html>;
+  return <html lang="en"><body><style dangerouslySetInnerHTML={{ __html: productPolish }} />{children}</body></html>;
 }

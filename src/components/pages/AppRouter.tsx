@@ -21,8 +21,14 @@ import SearchPage from "@/components/pages/Search";
 type Props = { path: string };
 
 export default function AppRouter({ path }: Props) {
-  const slug = decodeURIComponent(path.split("/")[2] || "");
   const [activePostId, setActivePostId] = useState<string | null>(null);
+  const [backgroundPath, setBackgroundPath] = useState("/home");
+
+  useEffect(() => {
+    if (!path.startsWith("/project/")) {
+      setBackgroundPath(path);
+    }
+  }, [path]);
 
   useEffect(() => {
     if (!path.startsWith("/explore")) {
@@ -37,22 +43,45 @@ export default function AppRouter({ path }: Props) {
     return () => window.removeEventListener("nerdding:open-post", onOpen);
   }, [path]);
 
-  let content: React.ReactNode;
-  if (path.startsWith("/profile/")) content = <ProfilePage username={slug} />;
-  else if (path.startsWith("/project/") && path !== "/project/new") content = <ProjectDetailPage slug={slug} />;
-  else if (path === "/project/new") content = <ProjectCreatePage />;
-  else if (path.startsWith("/post/")) content = <ActivePost postId={slug} />;
-  else if (path.startsWith("/settings")) content = <SettingsPage />;
-  else if (path.startsWith("/explore")) content = <ExplorePage />;
-  else if (path.startsWith("/events")) content = <EventsPage />;
-  else if (path.startsWith("/messages")) content = <MessagesPage />;
-  else if (path.startsWith("/notifications")) content = <NotificationsPage />;
-  else if (path.startsWith("/charts")) content = <ChartsPage />;
-  else if (path.startsWith("/fundraising")) content = <FundraisingPage />;
-  else if (path.startsWith("/search")) content = <SearchPage query={typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("q") ?? ""} />;
-  else if (path.startsWith("/nerddings")) content = <YourNerddingsPage />;
-  else if (path.startsWith("/documentation")) content = <DocumentationSurface slug={slug || "about"} />;
-  else content = <><HomePage />{path === "/home" && <FeedUpdatePrompt />}</>;
+  const isProjectNew = path === "/project/new";
+  const isProjectDetail = path.startsWith("/project/") && path !== "/project/new";
+  const currentPath = (isProjectNew || isProjectDetail) ? backgroundPath : path;
+  const routeSlug = decodeURIComponent(currentPath.split("/")[2] || "");
+  const projectSlug = isProjectDetail ? decodeURIComponent(path.split("/")[2] || "") : "";
 
-  return <>{content}{activePostId && path.startsWith("/explore") ? <ActivePost postId={activePostId} onClose={() => setActivePostId(null)} isPanel /> : null}</>;
+  let content: React.ReactNode;
+  if (currentPath.startsWith("/profile/")) content = <ProfilePage username={routeSlug} />;
+  else if (currentPath.startsWith("/post/")) content = <ActivePost postId={routeSlug} />;
+  else if (currentPath.startsWith("/settings")) content = <SettingsPage />;
+  else if (currentPath.startsWith("/explore")) content = <ExplorePage />;
+  else if (currentPath.startsWith("/events")) content = <EventsPage />;
+  else if (currentPath.startsWith("/messages")) content = <MessagesPage />;
+  else if (currentPath.startsWith("/notifications")) content = <NotificationsPage />;
+  else if (currentPath.startsWith("/charts")) content = <ChartsPage />;
+  else if (currentPath.startsWith("/fundraising")) content = <FundraisingPage />;
+  else if (currentPath.startsWith("/search")) content = <SearchPage query={typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("q") ?? ""} />;
+  else if (currentPath.startsWith("/nerddings")) content = <YourNerddingsPage />;
+  else if (currentPath.startsWith("/documentation")) content = <DocumentationSurface slug={routeSlug || "about"} />;
+  else content = <><HomePage />{currentPath === "/home" && <FeedUpdatePrompt />}</>;
+
+  const handleCloseProject = () => {
+    if (typeof window !== "undefined") {
+      if (window.history.state && window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.history.pushState({}, "", backgroundPath);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      }
+    }
+  };
+
+  return (
+    <>
+      {content}
+      {isProjectDetail && <ProjectDetailPage slug={projectSlug} onClose={handleCloseProject} />}
+      {isProjectNew && <ProjectCreatePage onClose={handleCloseProject} />}
+      {activePostId && currentPath.startsWith("/explore") ? <ActivePost postId={activePostId} onClose={() => setActivePostId(null)} isPanel /> : null}
+    </>
+  );
 }
+

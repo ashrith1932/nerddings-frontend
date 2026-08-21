@@ -1,4 +1,4 @@
-import { apiFetch, uploadMedia } from "@/services/httpClient";
+import { apiFetch, uploadMedia } from "@/lib/api";
 
 export type CreateProjectOption = { slug: string; name: string };
 
@@ -7,8 +7,8 @@ export async function getCreateProjects(username: string): Promise<CreateProject
     `/social/users/${encodeURIComponent(username)}/profile-live`,
   );
   return (response.data?.projects ?? [])
-    .filter((project) => typeof project.slug === "string" && typeof project.name === "string")
-    .map((project) => ({ slug: project.slug!, name: project.name! }));
+    .filter((project: any) => typeof project.slug === "string" && typeof project.name === "string")
+    .map((project: any) => ({ slug: project.slug!, name: project.name! }));
 }
 
 export async function publishPost(input: { body: string; files?: File[]; projectSlug?: string }) {

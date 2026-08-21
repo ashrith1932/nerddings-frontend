@@ -5,15 +5,9 @@ const NerddingApp = dynamic(
   { ssr: false },
 );
 
-const ProfileRouteOnly = dynamic(
-  () => import("@/components/app/ProfileRouteOnly").then((module) => module.default),
-  { ssr: false },
-);
-
-export default function CatchAllPage({ params }: { params: { slug?: string[] } }) {
-  const slug = params.slug ?? [];
-  if (slug[0] === "profile" && slug[1]) {
-    return <ProfileRouteOnly username={decodeURIComponent(slug[1])} />;
-  }
+// All routes — including /profile/* and /project/* — go through the unified
+// NerddingApp shell. This ensures the sidebar, topbar, and runtime are always
+// present regardless of how the user arrives (direct URL or client navigation).
+export default function CatchAllPage() {
   return <NerddingApp />;
 }
