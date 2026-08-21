@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, ArrowRight, Bookmark, Check, Ellipsis, Eye, Heart, MessageCircle, Plus, Search, Send, Settings as SettingsIcon, X } from "lucide-react";
 import { Avatar, VerifiedMark, ProjectMark } from "@/components/ui/Avatar";
+import VerifiedName from "@/components/ui/VerifiedName";
+import InterestsSection from "@/components/ui/InterestsSection";
 import { getSavedUser } from "@/services/api";
 import { amplifyProfilePost, getProfilePost, getProfileSnapshot, getProfileFollowing, toggleProfileFollowing, toggleProfileLike, toggleProfileSave, getProfileAgents, requestProfileAffiliation, type ProfilePost, type ProfileProject, type ProfileSnapshot, type ProfileUser } from "@/services/profile";
 import ActivePost from "@/components/post/ActivePost";
@@ -89,7 +91,7 @@ function ProjectCard({ project }: { project: ProfileProject }) {
 }
 
 function PeopleList({ people }: { people: ProfileSnapshot["followers"] }) {
-  return <div className="profile-person-list">{people.map((person) => <button className="profile-person-row" key={person.id} onClick={() => navigate(`/profile/${encodeURIComponent(person.username)}`)}><UserAvatar user={person} size={44} /><span><strong>{person.name} {person.accountType === "agent" && <VerifiedMark />}</strong><small>@{person.username}</small>{person.bio ? <em>{person.bio}</em> : null}</span><ArrowRight size={15} /></button>)}</div>;
+  return <div className="profile-person-list">{people.map((person) => <button className="profile-person-row" key={person.id} onClick={() => navigate(`/profile/${encodeURIComponent(person.username)}`)}><UserAvatar user={person} size={44} /><span><VerifiedName name={person.name} verified={person.accountType === "agent"} /><small>@{person.username}</small>{person.bio ? <em>{person.bio}</em> : null}</span><ArrowRight size={15} /></button>)}</div>;
 }
 
 
@@ -192,7 +194,9 @@ export default function ProfileStandaloneView({ username }: { username: string }
               <strong>No affiliations yet</strong>
               <span>Verified affiliations will appear here.</span>
             </div>
-          )}</aside>}</aside></div>
+          )}
+          <InterestsSection username={username} />
+          </aside>}</aside></div>
     {showAddAgent && (
       <div className="profile-action-modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setShowAddAgent(false); }}>
         <div className="profile-action-modal" style={{ width: "min(460px, 95vw)", height: "auto", maxHeight: "min(500px, 90vh)" }}>

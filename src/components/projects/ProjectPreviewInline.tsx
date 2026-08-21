@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowUpRight, Loader2, X, Github, Users, Activity, Layers } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Loader2, X, Github, Users, Activity, Layers, Star } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { Avatar, ProjectMark } from "@/components/ui/Avatar";
+import ProjectInterestButton from "@/components/ui/ProjectInterestButton";
 
 type Person = { id: string; name: string; username: string; avatarUrl?: string | null };
 type ProjectUpdate = { id: string; body: string; created_at: string };
@@ -17,6 +18,8 @@ type Project = {
   owner?: Person | null;
   contributors?: Array<{ user_id: string; name: string; username: string; avatar_url?: string | null }>;
   posts?: ProjectUpdate[];
+  interestCount?: number;
+  interested?: boolean;
 };
 
 export default function ProjectPreviewInline({ slug, onClose, onOpenFull }: { slug: string; onClose: () => void; onOpenFull: () => void }) {
@@ -211,6 +214,18 @@ export default function ProjectPreviewInline({ slug, onClose, onOpenFull }: { sl
                   </div>
                 </div>
               )}
+
+              {/* Interest Button */}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <ProjectInterestButton
+                  projectId={project.id}
+                  initiallyInterested={Boolean(project.interested)}
+                  initialCount={project.interestCount ?? 0}
+                />
+                <span style={{ fontSize: "10px", color: "var(--muted)" }}>
+                  Show your interest in this project
+                </span>
+              </div>
 
               {/* Main Full Page Navigation CTA */}
               <button

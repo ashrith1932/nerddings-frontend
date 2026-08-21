@@ -7,9 +7,71 @@ import MessagesPanel from "@/components/messages/MessagesPanel";
 import HomeFeedSurface from "@/components/social/HomeFeedSurface";
 
 const panelCss = `
-.live-data-route{width:100%;padding:4px 0 60px}.live-data-route h1{margin:4px 0 7px;font-size:28px;letter-spacing:-.02em}.live-data-route p{color:#8b8178;font-size:12px;line-height:1.55}.live-data-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:18px}.live-data-head .eyebrow,.live-data-kicker{font-size:8px;letter-spacing:.14em;font-weight:800;color:#978d84}.live-data-tabs{display:flex;gap:26px;border-bottom:1px solid #e3ddd5;margin-bottom:18px}.live-data-tabs button{border:0;background:none;padding:11px 0 12px;color:#8b8178;font-weight:700;font-size:12px;cursor:pointer;position:relative}.live-data-tabs button.active{color:#201c19}.live-data-tabs button.active:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:8px;background:#201c19}.live-data-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.live-data-card{background:#fffdf9;border:1px solid #ded7cf;border-radius:14px;padding:0;box-shadow:0 2px 10px rgba(31,27,24,.03);overflow:hidden}.live-data-card:hover{border-color:#c9c0b7;box-shadow:0 14px 30px rgba(31,27,24,.06)}.live-data-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.live-data-card h3{font-size:13px;margin:4px 0}.live-data-meta{font-size:9px;color:#978d84}.live-data-row{display:grid;grid-template-columns:34px 40px minmax(0,1fr) auto 18px;align-items:center;gap:12px;min-height:78px;padding:0 18px;border-bottom:1px solid #eee8e1;transition:background .18s ease,transform .18s ease}.live-data-row:last-child{border-bottom:0}.live-data-row:hover{background:#faf7f1;transform:translateX(2px)}.live-data-rank{width:25px;font-size:10px;color:#988e85;font-weight:800}.live-data-row>.home-avatar-sm{width:34px!important;height:34px!important;border-radius:50%!important;overflow:hidden!important;display:grid;place-items:center;background:#eee8df}.live-data-row>.home-avatar-sm img{width:100%;height:100%;object-fit:cover;border-radius:50%}.live-data-row-main{flex:1;min-width:0}.live-data-row-main strong{font-size:11px;display:block;color:#201c19;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.live-data-row-main>span:not(.live-data-progress){font-size:9px;color:#8e847b;display:block;margin-top:2px}.live-data-score{font-size:10px;font-weight:800;color:#655d55;min-width:45px;text-align:right}.live-data-row:has(.live-data-score)::after{content:"›";font-size:19px;color:#8f857c;line-height:1}.live-data-progress{height:4px;max-width:170px;border-radius:99px;background:#eee9e3;overflow:hidden;margin-top:7px;display:block}.live-data-progress i{display:block;height:100%;background:#d35d34;border-radius:99px}.live-data-notification{display:flex;gap:10px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #eee8e1;cursor:pointer}.live-data-notification.unread{background:#fbf7f1;margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:8px}.live-data-notification-icon{width:32px;height:32px;border-radius:9px;background:#f0ebe4;display:grid;place-items:center;color:#6e655d;flex:0 0 auto}.live-data-notification-main{flex:1;min-width:0}.live-data-notification-main strong{font-size:11px}.live-data-notification-main p{margin:3px 0;font-size:10px}.live-data-notification-main small{font-size:8px;color:#9a9087}.live-data-unread{width:6px;height:6px;border-radius:50%;background:#d35d34;margin-top:8px}.live-data-empty{min-height:220px;display:grid;place-items:center;text-align:center;border:1px solid #ded7cf;border-radius:14px;background:#fffdf9;padding:30px}.live-data-empty svg{color:#9a9087}.live-data-empty strong{font-size:12px}.live-data-empty span{font-size:10px;color:#948a81}.live-data-fundraising{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.live-fund-card{background:#fffdf9;border:1px solid #ded7cf;border-radius:12px;padding:15px;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.live-fund-card:hover{transform:translateY(-2px);border-color:#c9c0b7;box-shadow:0 12px 26px rgba(31,27,24,.07)}.live-fund-top{display:flex;justify-content:space-between;align-items:flex-start}.live-fund-top strong{font-size:14px}.live-fund-stage{font-size:8px;padding:4px 7px;border:1px solid #ded7cf;border-radius:99px}.live-fund-amount{font-size:20px;font-weight:800;margin:13px 0 2px}.live-fund-sub{font-size:9px;color:#948a81}.live-fund-progress{height:7px;background:#eee9e3;border-radius:99px;overflow:hidden;margin:12px 0 7px}.live-fund-progress i{display:block;height:100%;background:#d35d34}.live-fund-foot{display:flex;justify-content:space-between;color:#8e847b;font-size:9px}.live-search-box{display:flex;align-items:center;gap:8px;border:1px solid #ddd6cc;border-radius:10px;background:#fffdf9;padding:9px 11px;margin-bottom:14px}.live-search-box input{border:0;outline:0;flex:1;background:transparent;font:inherit;font-size:12px}.live-search-section{margin-bottom:18px}.live-search-section h2{font-size:13px;margin:0 0 8px}.live-search-item{display:flex;align-items:center;gap:9px;border-bottom:1px solid #eee8e1;padding:10px 0}.live-search-item strong{font-size:11px}.live-search-item small{display:block;color:#91877e;font-size:9px;margin-top:2px}.live-search-link{border:0;background:none;padding:0;text-align:left;cursor:pointer;color:inherit;flex:1}.live-messages-wrap{min-height:500px}.live-messages-wrap>div{min-height:500px}.charts-board{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}.charts-board-main{min-width:0}.charts-context{display:grid;gap:12px}.charts-context-card{background:#fffdf9;border:1px solid #ded7cf;border-radius:14px;padding:18px;box-shadow:0 2px 10px rgba(31,27,24,.03)}.charts-context-card h3{font-size:12px;margin:0 0 8px}.charts-context-card p{font-size:10px;margin:0;color:#81776e;line-height:1.65}.charts-how-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0}.charts-how-icon{width:30px;height:30px;border-radius:10px;background:#fbf5e9;color:#c07827;display:grid;place-items:center;flex:none}.charts-how-copy strong{font-size:10px}.charts-how-copy small{display:block;color:#91877e;font-size:9px;margin-top:2px}.chart-row-open{border:0;background:none;color:#8b8178;font-size:18px;line-height:1;cursor:pointer;padding:0}.chart-row-open:hover{color:#201c19}.nerdd-project-card-hover{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.nerdd-project-card-hover:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(31,27,24,.09);border-color:#c9c0b7}
+.live-data-route{width:100%;padding:4px 0 60px}.live-data-route h1{margin:4px 0 7px;font-size:28px;letter-spacing:-.02em}.live-data-route p{color:#8b8178;font-size:12px;line-height:1.55}.live-data-head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:18px}.live-data-head .eyebrow,.live-data-kicker{font-size:8px;letter-spacing:.14em;font-weight:800;color:#978d84}.live-data-tabs{display:flex;gap:26px;border-bottom:1px solid #e3ddd5;margin-bottom:18px}.live-data-tabs button{border:0;background:none;padding:11px 0 12px;color:#8b8178;font-weight:700;font-size:12px;cursor:pointer;position:relative}.live-data-tabs button.active{color:#201c19}.live-data-tabs button.active:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:8px;background:#201c19}.live-data-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.live-data-card{background:#fffdf9;border:1px solid #ded7cf;border-radius:14px;padding:0;box-shadow:0 2px 10px rgba(31,27,24,.03);overflow:hidden}.live-data-card:hover{border-color:#c9c0b7;box-shadow:0 14px 30px rgba(31,27,24,.06)}.live-data-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.live-data-card h3{font-size:13px;margin:4px 0}.live-data-meta{font-size:9px;color:#978d84}.live-data-row{display:grid;grid-template-columns:34px 40px minmax(0,1fr) auto 18px;align-items:center;gap:12px;min-height:78px;padding:0 18px;border-bottom:1px solid #eee8e1;transition:background .18s ease,transform .18s ease}.live-data-row:last-child{border-bottom:0}.live-data-row:hover{background:#faf7f1;transform:translateX(2px)}.live-data-rank{width:34px;font-size:10px;color:#988e85;font-weight:800;text-align:center}.live-data-row>.home-avatar-sm{width:40px!important;height:40px!important;border-radius:50%!important;overflow:hidden!important;display:grid;place-items:center;background:#eee8df;flex:0 0 auto}.live-data-row>.home-avatar-sm img{width:100%;height:100%;object-fit:cover;border-radius:50%}.live-data-row-main{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}.live-data-row-main strong{font-size:11px;display:block;color:#201c19;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.live-data-row-main>span:not(.live-data-progress){font-size:9px;color:#8e847b;display:block;margin-top:2px}.live-data-score{font-size:10px;font-weight:800;color:#655d55;min-width:45px;text-align:right}.live-data-row:has(.live-data-score)::after{content:"›";font-size:19px;color:#8f857c;line-height:1}.live-data-progress{height:4px;max-width:170px;border-radius:99px;background:#eee9e3;overflow:hidden;margin-top:7px;display:block}.live-data-progress i{display:block;height:100%;background:#d35d34;border-radius:99px}.live-data-notification{display:flex;gap:10px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #eee8e1;cursor:pointer}.live-data-notification.unread{background:#fbf7f1;margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:8px}.live-data-notification-icon{width:32px;height:32px;border-radius:9px;background:#f0ebe4;display:grid;place-items:center;color:#6e655d;flex:0 0 auto}.live-data-notification-main{flex:1;min-width:0}.live-data-notification-main strong{font-size:11px}.live-data-notification-main p{margin:3px 0;font-size:10px}.live-data-notification-main small{font-size:8px;color:#9a9087}.live-data-unread{width:6px;height:6px;border-radius:50%;background:#d35d34;margin-top:8px}.live-data-empty{min-height:220px;display:grid;place-items:center;text-align:center;border:1px solid #ded7cf;border-radius:14px;background:#fffdf9;padding:30px}.live-data-empty svg{color:#9a9087}.live-data-empty strong{font-size:12px}.live-data-empty span{font-size:10px;color:#948a81}.live-data-fundraising{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.live-fund-card{background:#fffdf9;border:1px solid #ded7cf;border-radius:12px;padding:15px;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.live-fund-card:hover{transform:translateY(-2px);border-color:#c9c0b7;box-shadow:0 12px 26px rgba(31,27,24,.07)}.live-fund-top{display:flex;justify-content:space-between;align-items:flex-start}.live-fund-top strong{font-size:14px}.live-fund-stage{font-size:8px;padding:4px 7px;border:1px solid #ded7cf;border-radius:99px}.live-fund-amount{font-size:20px;font-weight:800;margin:13px 0 2px}.live-fund-sub{font-size:9px;color:#948a81}.live-fund-progress{height:7px;background:#eee9e3;border-radius:99px;overflow:hidden;margin:12px 0 7px}.live-fund-progress i{display:block;height:100%;background:#d35d34}.live-fund-foot{display:flex;justify-content:space-between;color:#8e847b;font-size:9px}.live-search-box{display:flex;align-items:center;gap:8px;border:1px solid #ddd6cc;border-radius:10px;background:#fffdf9;padding:9px 11px;margin-bottom:14px}.live-search-box input{border:0;outline:0;flex:1;background:transparent;font:inherit;font-size:12px}.live-search-section{margin-bottom:18px}.live-search-section h2{font-size:13px;margin:0 0 8px}.live-search-item{display:flex;align-items:center;gap:9px;border-bottom:1px solid #eee8e1;padding:10px 0}.live-search-item strong{font-size:11px}.live-search-item small{display:block;color:#91877e;font-size:9px;margin-top:2px}.live-search-link{border:0;background:none;padding:0;text-align:left;cursor:pointer;color:inherit;flex:1}.live-messages-wrap{min-height:500px}.live-messages-wrap>div{min-height:500px}.charts-board{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}.charts-board-main{min-width:0}.charts-context{display:grid;gap:12px}.charts-context-card{background:#fffdf9;border:1px solid #ded7cf;border-radius:14px;padding:18px;box-shadow:0 2px 10px rgba(31,27,24,.03)}.charts-context-card h3{font-size:12px;margin:0 0 8px}.charts-context-card p{font-size:10px;margin:0;color:#81776e;line-height:1.65}.charts-how-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0}.charts-how-icon{width:30px;height:30px;border-radius:10px;background:#fbf5e9;color:#c07827;display:grid;place-items:center;flex:none}.charts-how-copy strong{font-size:10px}.charts-how-copy small{display:block;color:#91877e;font-size:9px;margin-top:2px}.chart-row-open{border:0;background:none;color:#8b8178;font-size:18px;line-height:1;cursor:pointer;padding:0}.chart-row-open:hover{color:#201c19}.nerdd-project-card-hover{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.nerdd-project-card-hover:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(31,27,24,.09);border-color:#c9c0b7}
 @media(max-width:980px){.charts-board{grid-template-columns:1fr}.charts-context{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:800px){.live-data-grid,.live-data-fundraising{grid-template-columns:1fr}.live-data-head{align-items:flex-start;flex-direction:column}.live-data-route h1{font-size:24px}.charts-context{grid-template-columns:1fr}.live-data-row{grid-template-columns:28px 34px minmax(0,1fr) auto 16px;padding:0 12px;gap:9px}.live-data-progress{max-width:120px}}
 `;
+
+const notifCardCss = `
+.notif-list { display: flex; flex-direction: column; gap: 6px; }
+.notif-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--card, #fffdf9);
+  border: 1px solid var(--line, #ded7cf);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.notif-card:hover { background: #faf7f1; box-shadow: 0 2px 10px rgba(31,27,24,.05); transform: translateY(-1px); }
+.notif-card--unread { background: #fbf6ee; border-color: #d8cfc4; }
+.notif-card-left { position: relative; flex: 0 0 auto; }
+.notif-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  overflow: hidden; display: grid; place-items: center;
+  background: #e9e3db; font-size: 11px; font-weight: 800; color: #2b2622;
+}
+.notif-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.notif-kind-icon {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--ink, #201c19); color: #fff;
+  display: grid; place-items: center;
+  border: 2px solid var(--card, #fffdf9);
+}
+.notif-card-body { flex: 1; min-width: 0; }
+.notif-card-actor { font-size: 12px; font-weight: 700; color: var(--ink, #201c19); }
+.notif-card-text { margin: 2px 0 0; font-size: 11px; color: #6e655d; line-height: 1.45; }
+.notif-card-time { font-size: 9px; color: #9a9087; }
+.notif-card-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.notif-action-accept {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 12px; border: 0; border-radius: 8px;
+  background: var(--ink, #201c19); color: var(--cream, #faf6f0);
+  font-size: 10px; font-weight: 700; cursor: pointer;
+  transition: opacity 0.15s;
+}
+.notif-action-accept:hover { opacity: 0.85; }
+.notif-action-accept:disabled { opacity: 0.5; cursor: not-allowed; }
+.notif-action-reject {
+  display: inline-flex; align-items: center;
+  padding: 5px 10px; border: 1px solid var(--line, #ded7cf); border-radius: 8px;
+  background: none; color: #7d736b;
+  font-size: 10px; font-weight: 650; cursor: pointer;
+  transition: background 0.15s;
+}
+.notif-action-reject:hover { background: rgba(0,0,0,.04); }
+.notif-action-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+.notif-unread-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #d35d34; flex: 0 0 auto;
+}
+@media(max-width:600px){
+  .notif-card { padding: 10px; gap: 10px; }
+  .notif-avatar { width: 34px; height: 34px; }
+  .notif-action-accept, .notif-action-reject { padding: 4px 8px; font-size: 9px; }
+}
+`;
+
 
 const ago = (value: string) => { const seconds = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000)); if (seconds < 60) return "now"; if (seconds < 3600) return `${Math.floor(seconds / 60)}m`; if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`; return `${Math.floor(seconds / 86400)}d`; };
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).map((part) => part[0]).join("").slice(0,2).toUpperCase();
@@ -39,11 +101,67 @@ export function LiveMessagesRoute() { return <div className="live-data-route liv
 
 export function LiveNotificationsRoute() {
   const [items, setItems] = useState<any[]>([]); const [loading, setLoading] = useState(true);
+  const [actionBusy, setActionBusy] = useState<Record<string, boolean>>({});
   const load = async () => { setLoading(true); try { const response = await apiFetch<any>("/notifications"); setItems(response.data ?? []); } catch { setItems([]); } finally { setLoading(false); } };
   useEffect(() => { void load(); }, []);
   const markAll = async () => { try { await apiFetch("/notifications/read-all", { method: "POST" }); await load(); } catch {} };
-  return <div className="live-data-route"><style>{panelCss}</style><LiveNavMeta /><div className="live-data-head"><div><div className="eyebrow">KEEP IN THE LOOP</div><h1>Notifications</h1><p>Live activity generated by your Nerdding network.</p></div><button className="outline-button" onClick={() => void markAll()}><Check size={14} /> Mark all as read</button></div>{loading ? <div className="live-data-empty"><Loader2 size={20} /></div> : items.length ? <div className="live-data-card">{items.map((item) => <div className={`live-data-notification ${!item.readAt ? "unread" : ""}`} key={item.id} onClick={async () => { if (!item.readAt) { try { await apiFetch(`/notifications/${item.id}/read`, { method: "POST" }); } catch {} } if (item.kind === "follow" && item.actor?.username) window.history.pushState({}, "", `/profile/${encodeURIComponent(item.actor.username)}`); else if (item.entityId) window.history.pushState({}, "", `/post/${encodeURIComponent(item.entityId)}`); window.dispatchEvent(new PopStateEvent("popstate")); }}><span className="live-data-notification-icon">{item.kind === "follow" ? <Users size={15} /> : item.kind === "comment" ? <MessageCircle size={15} /> : item.kind === "message_request" ? <Bell size={15} /> : <Activity size={15} />}</span><span className="live-data-notification-main"><strong>{item.actor?.name ?? "Nerdding"}</strong><p>{item.text}</p><small>{ago(item.createdAt)}</small></span>{!item.readAt && <i className="live-data-unread" />}</div>)}</div> : <div className="live-data-empty"><Bell size={20} /><strong>No notifications</strong><span>New activity will appear here when something happens.</span></div>}</div>;
+  const markRead = async (id: string) => { try { await apiFetch(`/notifications/${id}/read`, { method: "POST" }); } catch {} };
+  const handleAffiliationAction = async (notifId: string, entityId: string, decision: "accept" | "reject") => {
+    setActionBusy(prev => ({ ...prev, [notifId]: true }));
+    try {
+      await apiFetch(`/affiliations/agent-requests/${entityId}/${decision}`, { method: "POST" });
+      await markRead(notifId);
+      await load();
+    } catch (e) { console.error("Affiliation action failed", e); }
+    finally { setActionBusy(prev => ({ ...prev, [notifId]: false })); }
+  };
+  const navigateNotification = (item: any) => {
+    if (item.kind === "follow" && item.actor?.username) {
+      window.history.pushState({}, "", `/profile/${encodeURIComponent(item.actor.username)}`);
+    } else if (item.entityId) {
+      window.history.pushState({}, "", `/post/${encodeURIComponent(item.entityId)}`);
+    }
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
+
+  return <div className="live-data-route"><style>{panelCss}{notifCardCss}</style><LiveNavMeta />
+    <div className="live-data-head">
+      <div><div className="eyebrow">KEEP IN THE LOOP</div><h1>Notifications</h1><p>Live activity generated by your Nerdding network.</p></div>
+      <button className="outline-button" onClick={() => void markAll()}><Check size={14} /> Mark all as read</button>
+    </div>
+    {loading ? <div className="live-data-empty"><Loader2 size={20} /></div> : items.length ? <div className="notif-list">
+      {items.map((item) => {
+        const isAffiliationRequest = item.kind === "agent_affiliation_request";
+        const isUnread = !item.readAt;
+        return <div className={`notif-card ${isUnread ? "notif-card--unread" : ""}`} key={item.id}>
+          <div className="notif-card-left" onClick={() => { if (!isAffiliationRequest) { void markRead(item.id); navigateNotification(item); } }}>
+            {/* Avatar */}
+            <span className="notif-avatar">
+              {item.actor?.avatarUrl ? <img src={item.actor.avatarUrl} alt="" /> : <span>{(item.actor?.name ?? "N").slice(0, 2).toUpperCase()}</span>}
+            </span>
+            {/* Icon overlay */}
+            <span className="notif-kind-icon">
+              {item.kind === "follow" ? <Users size={11} /> : item.kind === "comment" ? <MessageCircle size={11} /> : item.kind === "message_request" ? <Bell size={11} /> : item.kind === "agent_affiliation_request" ? <Users size={11} /> : item.kind === "agent_affiliation_approved" ? <Check size={11} /> : <Activity size={11} />}
+            </span>
+          </div>
+          <div className="notif-card-body" onClick={() => { if (!isAffiliationRequest) { void markRead(item.id); navigateNotification(item); } }}>
+            <div className="notif-card-actor">{item.actor?.name ?? "Nerdding"}</div>
+            <p className="notif-card-text">{item.text}</p>
+            <small className="notif-card-time">{ago(item.createdAt)}</small>
+          </div>
+          <div className="notif-card-actions">
+            {isAffiliationRequest && isUnread && item.entityId ? <>
+              <button className="notif-action-accept" disabled={!!actionBusy[item.id]} onClick={() => void handleAffiliationAction(item.id, item.entityId, "accept")}><Check size={13} /> Accept</button>
+              <button className="notif-action-reject" disabled={!!actionBusy[item.id]} onClick={() => void handleAffiliationAction(item.id, item.entityId, "reject")}>Decline</button>
+            </> : null}
+            {isUnread && <i className="notif-unread-dot" />}
+          </div>
+        </div>;
+      })}
+    </div> : <div className="live-data-empty"><Bell size={20} /><strong>No notifications</strong><span>New activity will appear here when something happens.</span></div>}
+  </div>;
 }
+
 
 export function LiveChartsRoute() {
   const [data, setData] = useState<any>(null); const [tab, setTab] = useState("risingBuilders"); const [loading, setLoading] = useState(true);
