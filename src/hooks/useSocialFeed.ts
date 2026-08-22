@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-
+import { apiFetch } from "@/lib/api";
 interface Post {
   id: string;
   authorId: string;
@@ -30,15 +30,15 @@ export function useSocialFeed(mode: "for-you" | "network" | "saved" = "for-you")
   const queryKey = ["social-feed", mode];
 
   const fetchFeed = async ({ pageParam = null }): Promise<FeedResponse> => {
-    let url = `/api/v1/feed?mode=${mode}&limit=20`;
+    let url = `/social/feed?mode=${mode}&limit=20`;
     if (pageParam) {
       url += `&cursor=${pageParam}`;
     }
-    const res = await fetch(url);
-    if (!res.ok) {
+    const res = await apiFetch<{data: Post[], nextCursor: string | null, mode: string}>(url);
+    if (!res || !res.data) {
       throw new Error("Failed to fetch feed");
     }
-    return res.json();
+    return { data: res.data, nextCursor: (res as any).nextCursor || null, mode: (res as any).mode || mode };
   };
 
   const {
