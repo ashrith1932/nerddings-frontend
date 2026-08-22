@@ -6,6 +6,7 @@ export type ProfileUser = {
   bio?: string | null;
   location?: string | null;
   accountType?: "user" | "agent" | string;
+  verified?: boolean;
 };
 
 export type ProfilePost = {

@@ -8,7 +8,8 @@ import {
   getSavedUser,
   uploadMedia,
 } from "@/lib/api";
-import { Avatar, VerifiedMark } from "@/components/ui/Avatar";
+import { Avatar } from "@/components/ui/Avatar";
+import VerifiedName from "@/components/ui/VerifiedName";
 import { currentUser as seededCurrentUser, type User } from "@/lib/mock-data";
 import ProfileSectionTabs from "@/components/app/ProfileSectionTabs";
 
@@ -288,7 +289,7 @@ export function ProfileSurface({ username }: { username: string }) {
             <div className="profile-title-row">
               <div>
                 <h1>
-                  {user.name} {user.verified && <VerifiedMark />}
+                  <VerifiedName name={user.name} verified={user.verified} />
                 </h1>
                 <p>
                   @{user.username}
@@ -661,7 +662,7 @@ export function SettingsSurface() {
                         <strong>{a.name}</strong>
                         <small>{a.role} · Verified Agent</small>
                       </span>
-                      <VerifiedMark />
+                      <VerifiedName name={a.name} verified={true} />
                     </div>
                   ))
                 ) : (

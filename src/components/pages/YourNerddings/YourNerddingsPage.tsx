@@ -4,11 +4,12 @@ import { useEffect, useState, useMemo } from "react";
 import { Users, ArrowUpRight, MessageCircle } from "lucide-react";
 import { apiFetch, getSavedUser } from "@/lib/api";
 import { VerifiedMark } from "@/components/ui/Avatar";
+import VerifiedName from "@/components/ui/VerifiedName";
 import { PostCard, ActivePostModal, homeFeedStyles, fetchDetail } from "@/components/social/HomeFeedSurface";
 import ProjectPreviewInline from "@/components/projects/ProjectPreviewInline";
 
 type FeedPost = any; // We can use 'any' or import it if needed, but since we map directly, any is fine for local state
-type Person = { id: string; name: string; username: string; accountType?: string; avatarUrl?: string | null };
+type Person = { id: string; name: string; username: string; accountType?: string; verified?: boolean; avatarUrl?: string | null };
 
 const initials = (name?: string) => (name || "N").split(/\s+/).filter(Boolean).map((x) => x[0]).join("").slice(0, 2).toUpperCase();
 
@@ -126,7 +127,7 @@ export default function YourNerddingsRoute() {
                   <button className="yn-item" key={person.id} onClick={() => { window.history.pushState({}, "", `/profile/${encodeURIComponent(person.username)}`); window.dispatchEvent(new PopStateEvent("popstate")); }}>
                     <span className="yn-avatar">{person.avatarUrl ? <img src={person.avatarUrl} alt="" /> : initials(person.name)}</span>
                     <span className="yn-copy">
-                      <strong>{person.name}{person.accountType === 'agent' && <VerifiedMark />}</strong>
+                      <strong><VerifiedName name={person.name} verified={person.verified} /></strong>
                       <small>@{person.username}</small>
                     </span>
                     <ArrowUpRight size={14} />

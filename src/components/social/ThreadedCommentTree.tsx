@@ -5,7 +5,7 @@ import { Send } from "lucide-react";
 import { Avatar, VerifiedMark } from "@/components/ui/Avatar";
 import VerifiedName from "@/components/ui/VerifiedName";
 
-type UserRef = { id: string; name: string; username: string; avatarUrl?: string | null; accountType?: string };
+type UserRef = { id: string; name: string; username: string; avatarUrl?: string | null; accountType?: string; verified?: boolean };
 export type ThreadComment = { id: string; postId: string; parentId: string | null; body: string; createdAt: string; author: UserRef; replies: ThreadComment[] };
 
 const MAX_DEPTH = 6;
@@ -21,7 +21,7 @@ function CommentNode({ node, depth, onReply }: { node: ThreadComment; depth: num
   const hasReplies = node.replies?.length > 0;
   const send = async()=>{const value=text.trim();if(!value||busy)return;setBusy(true);try{await onReply(node.id,value);setText("");setReplyOpen(false);}finally{setBusy(false);}};
   return <div className={`threaded-comment-node ${depth>0?"is-reply":""}`}>
-    <div className="threaded-comment-row"><span className="threaded-comment-avatar">{node.author.avatarUrl?<img src={node.author.avatarUrl} alt=""/>:initials(node.author.name)}</span><div className="threaded-comment-body"><div className="threaded-comment-meta"><VerifiedName name={node.author.name} verified={true} /><small>@{node.author.username} · {timeAgo(node.createdAt)}</small></div><p className="threaded-comment-text">{node.body}</p><div className="threaded-comment-actions"><button onClick={()=>setReplyOpen(v=>!v)}>Reply</button>{hasReplies&&<button onClick={()=>setCollapsed(v=>!v)}>{collapsed?"+":"−"}</button>}{collapsed&&hasReplies&&<span className="threaded-hidden-count">{descendants(node)} repl{descendants(node)===1?"y":"ies"} hidden</span>}</div>{replyOpen&&<div className="threaded-comment-reply"><input autoFocus value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void send()}} placeholder={`Reply to ${node.author.name}…`}/><button disabled={!text.trim()||busy} onClick={()=>void send()}><Send size={13}/></button></div>}</div></div>
+    <div className="threaded-comment-row"><span className="threaded-comment-avatar">{node.author.avatarUrl?<img src={node.author.avatarUrl} alt=""/>:initials(node.author.name)}</span><div className="threaded-comment-body"><div className="threaded-comment-meta"><VerifiedName name={node.author.name} verified={node.author.verified} /><small>@{node.author.username} · {timeAgo(node.createdAt)}</small></div><p className="threaded-comment-text">{node.body}</p><div className="threaded-comment-actions"><button onClick={()=>setReplyOpen(v=>!v)}>Reply</button>{hasReplies&&<button onClick={()=>setCollapsed(v=>!v)}>{collapsed?"+":"−"}</button>}{collapsed&&hasReplies&&<span className="threaded-hidden-count">{descendants(node)} repl{descendants(node)===1?"y":"ies"} hidden</span>}</div>{replyOpen&&<div className="threaded-comment-reply"><input autoFocus value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void send()}} placeholder={`Reply to ${node.author.name}…`}/><button disabled={!text.trim()||busy} onClick={()=>void send()}><Send size={13}/></button></div>}</div></div>
     {hasReplies&&!collapsed&&<div className="threaded-comment-children">{depth>=MAX_DEPTH?<div className="threaded-depth-limit">Further replies stay at level {MAX_DEPTH}; the thread will not indent deeper.</div>:node.replies.map(child=><CommentNode key={child.id} node={child} depth={depth+1} onReply={onReply}/>)}</div>}
   </div>;
 }
