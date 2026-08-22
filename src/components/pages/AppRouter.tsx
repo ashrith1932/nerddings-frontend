@@ -51,7 +51,7 @@ export default function AppRouter({ path }: Props) {
 
   let content: React.ReactNode;
   if (currentPath.startsWith("/profile/")) content = <ProfilePage username={routeSlug} />;
-  else if (currentPath.startsWith("/post/")) content = <ActivePost postId={routeSlug} />;
+  else if (currentPath.startsWith("/post/")) content = <ActivePost id={routeSlug} />;
   else if (currentPath.startsWith("/settings")) content = <SettingsPage />;
   else if (currentPath.startsWith("/explore")) content = <ExplorePage />;
   else if (currentPath.startsWith("/events")) content = <EventsPage />;
@@ -80,8 +80,7 @@ export default function AppRouter({ path }: Props) {
       {content}
       {isProjectDetail && <ProjectDetailPage slug={projectSlug} onClose={handleCloseProject} />}
       {isProjectNew && <ProjectCreatePage onClose={handleCloseProject} />}
-      {activePostId && currentPath.startsWith("/explore") ? <ActivePost postId={activePostId} onClose={() => setActivePostId(null)} isPanel /> : null}
+      {activePostId && currentPath.startsWith("/explore") ? <ActivePost id={activePostId} onClose={() => setActivePostId(null)} isPanel={true} /> : null}
     </>
   );
 }
-

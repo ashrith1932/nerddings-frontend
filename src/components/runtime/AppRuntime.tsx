@@ -375,7 +375,7 @@ export default function AppRuntime({ path }: { path: string }) {
       // 3. Amplify/quote button
       const btnTarget = target.closest<HTMLElement>("button");
       if (btnTarget && isAmplify(btnTarget)) {
-        const card = btnTarget.closest<HTMLElement>(".home-post,.se-post,.social-post-card");
+        const card = btnTarget.closest<HTMLElement>(".home-post,.se-post,.social-post-card,.home-active-post");
         const id = card?.dataset.postId;
         if (id) {
           e.preventDefault(); e.stopImmediatePropagation();

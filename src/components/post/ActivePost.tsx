@@ -6,8 +6,9 @@ import { apiFetch, getSavedUser } from "@/lib/api";
 import { Avatar, VerifiedMark } from "@/components/ui/Avatar";
 import ThreadedCommentTree, { type ThreadComment } from "@/components/social/ThreadedCommentTree";
 import { backActivePost, clearActivePostHistory, enterActivePost } from "@/components/social/ActivePostHistory";
+import VerifiedName from "@/components/ui/VerifiedName";
 
-type User = { id: string; name: string; username: string; avatarUrl?: string | null; accountType?: string };
+type User = { id: string; name: string; username: string; avatarUrl?: string | null; accountType?: string; verified?: boolean };
 type Media = { publicUrl: string | null; mimeType: string };
 type Quote = { id: string; text: string; createdAt: string; author: User; media?: Media[]; linkUrl?: string | null; likes?: number; comments?: number; reposts?: number };
 type PostDetail = { id: string; text: string; createdAt: string; likes: number; comments: number; reposts: number; saves: number; views?: number; liked?: boolean; saved?: boolean; reposted?: boolean; author: User; media?: Media[]; linkUrl?: string | null; quotePost?: Quote | null; commentsTree?: ThreadComment[] };
