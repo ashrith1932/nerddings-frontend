@@ -70,7 +70,6 @@ const css = `
 
 /* Sidebar branding: match the application's actual BrandMark/Wordmark proportions. */
 .logo-link{display:flex!important;align-items:center!important;gap:9px!important;width:100%!important;border:0!important;background:none!important;padding:4px 8px!important;color:#171411!important;font-family:'Space Grotesk',sans-serif!important;font-weight:800!important;letter-spacing:-.04em!important;font-size:20px!important}
-.logo-link:before{content:"";display:block;width:30px;height:30px;flex:0 0 30px;border-radius:8px;background:#fff9e9;box-shadow:inset 0 0 0 1px #e7e0d6;background-image:radial-gradient(circle at 21% 20%,#171411 0 3px,transparent 3.5px),radial-gradient(circle at 79% 80%,#171411 0 3px,transparent 3.5px),linear-gradient(45deg,transparent 0 49%,#171411 50% 100%),linear-gradient(225deg,#171411 0 49%,transparent 50% 100%)}
 
 @media(max-width:1099px){.right-rail{width:320px!important;min-width:280px!important}.home-live-grid{grid-template-columns:minmax(0,1fr) minmax(280px,320px)!important}.home-info-rail{width:320px!important;min-width:280px!important;max-width:320px!important}.profile-content-grid{grid-template-columns:minmax(0,1fr) 320px!important}}
 @media(max-width:920px){.right-rail{display:none!important}.home-live-grid,.profile-content-grid{grid-template-columns:1fr!important}.home-info-rail{display:none!important}.home-active-post,.profile-active-post{max-width:100%!important}}

@@ -14,5 +14,6 @@ export default function CreateMenu({ open, onClose }: { open: boolean; onClose: 
     <button className="create-option" onClick={() => { onClose(); window.dispatchEvent(new CustomEvent("nerdding:open-composer")); }}><span><strong>Create a post</strong><small>Share a build update or idea</small></span><Plus size={15} /></button>
     <button className="create-option" onClick={() => { onClose(); navigate("/project/new"); }}><span><strong>Create a project</strong><small>Give your work a home</small></span><Plus size={15} /></button>
     <button className="create-option" onClick={() => { onClose(); navigate("/events?create=1"); }}><span><strong>Create an event</strong><small>Bring your community together</small></span><Plus size={15} /></button>
+    <button className="create-option" onClick={() => { onClose(); navigate("/fundraising?create=1"); }}><span><strong>Raise a fundraising</strong><small>Publish your startup funding round</small></span><Plus size={15} /></button>
   </div>;
 }

@@ -14,6 +14,7 @@ import {
   CheckCheck,
   Loader2,
   MessageCircle,
+  MessageSquarePlus,
   Search,
   Send,
   Wifi,
@@ -334,6 +335,8 @@ function mergeMessages(
   );
 }
 
+import NewMessageModal from "./NewMessageModal";
+
 export default function MessagesPanel() {
   const currentUser = getSavedUser();
 
@@ -351,6 +354,7 @@ export default function MessagesPanel() {
   const [realtimeConnected, setRealtimeConnected] =
     useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
 
   const activeConversationRef = useRef<string | null>(null);
   const currentUserRef = useRef(currentUser);
@@ -1688,33 +1692,52 @@ export default function MessagesPanel() {
           }
         >
           <aside className="messages-sidebar">
-            <div className="messages-sidebar-header">
+              <div className="messages-sidebar-header">
               <div className="messages-title-row">
-                <div>
-                  <div className="messages-title">
-                    Messages
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div>
+                    <div className="messages-title">
+                      Messages
+                    </div>
+                    <div
+                      className="realtime-state"
+                      style={{
+                        color:
+                          realtimeConnected
+                            ? "#13834b"
+                            : "#8a847d",
+                      }}
+                    >
+                      {realtimeConnected ? (
+                        <Wifi size={12} />
+                      ) : (
+                        <WifiOff size={12} />
+                      )}
+                      {realtimeConnected
+                        ? "Live"
+                        : "Connecting"}
+                    </div>
                   </div>
-
-                  <div
-                    className="realtime-state"
-                    style={{
-                      color:
-                        realtimeConnected
-                          ? "#13834b"
-                          : "#8a847d",
-                    }}
+                  <button 
+                    onClick={() => setIsNewMessageOpen(true)}
+                    style={{ background: '#201c19', color: '#fff', border: 0, padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                   >
-                    {realtimeConnected ? (
-                      <Wifi size={12} />
-                    ) : (
-                      <WifiOff size={12} />
-                    )}
-                    {realtimeConnected
-                      ? "Live"
-                      : "Connecting"}
-                  </div>
+                    <MessageSquarePlus size={14} />
+                    New
+                  </button>
                 </div>
               </div>
+
+              {isNewMessageOpen && (
+                <NewMessageModal 
+                  onClose={() => setIsNewMessageOpen(false)} 
+                  onSelect={(conversationId) => {
+                    setIsNewMessageOpen(false);
+                    void refreshConversations();
+                    setActiveConversationId(conversationId);
+                  }}
+                />
+              )}
 
               <div className="messages-search-wrap">
                 <Search

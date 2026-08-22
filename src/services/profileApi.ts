@@ -139,8 +139,8 @@ export async function toggleProfileSave(postId: string) {
 }
 
 export async function amplifyProfilePost(postId: string) {
-  const response = await apiFetch<{ data?: { active?: boolean; count?: number } | null }>(`/social/posts/${encodeURIComponent(postId)}/repost`, { method: "POST" });
-  return { active: true, count: numberValue(response?.data?.count) };
+  const response = await apiFetch<{ data?: { active?: boolean; counts?: { reposts: number } } | null }>(`/posts/${encodeURIComponent(postId)}/repost`, { method: "POST" });
+  return { active: true, count: numberValue(response?.data?.counts?.reposts) };
 }
 
 export async function getProfileFollowing(userId: string) {

@@ -241,7 +241,7 @@ export default function PostBottomSheet({ postId, onClose }: PostBottomSheetProp
 
               {/* Comment compose */}
               <div className="pbs-compose">
-                <Avatar user={getSavedUser()} size="xs" />
+                <Avatar user={(getSavedUser() as any) ?? undefined} size="xs" />
                 <input
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}

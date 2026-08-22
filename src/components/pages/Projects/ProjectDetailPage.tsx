@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowUpRight, ChevronDown, ChevronUp, Github, Loader2, Plus, Search, Share2, X } from "lucide-react";
 import { apiFetch, getSavedUser } from "@/lib/api";
 import { Avatar, ProjectMark } from "@/components/ui/Avatar";
+import ProjectInterestButton from "@/components/ui/ProjectInterestButton";
 import { projects as seededProjects } from "@/lib/mock-data";
 
 type Project = { id:string; name:string; slug:string; description:string; stage:string; githubUrl?:string|null; createdAt?:string; owner?:{id:string;name:string;username:string;avatarUrl?:string|null}|null; agent?:{id:string;name:string;slug:string;verified?:boolean}|null; posts?:Array<{id:string;body:string;created_at:string}> };
@@ -29,9 +30,9 @@ const styles=`
 
 export default function ProjectDetailSurface({slug, onClose}:{slug:string; onClose?:()=>void}){
  const [mounted,setMounted]=useState(false);useEffect(()=>{setMounted(true)},[]);
- const [project,setProject]=useState<Project|null>(null);const [members,setMembers]=useState<Member[]>([]);const [pending,setPending]=useState<Member[]>([]);const [commits,setCommits]=useState<Commit[]>([]);const [query,setQuery]=useState("");const [suggestions,setSuggestions]=useState<Suggestion[]>([]);const [selectedUser,setSelectedUser]=useState<Suggestion|null>(null);const [inviteRole,setInviteRole]=useState<"editor"|"viewer">("editor");const [inviteOpen,setInviteOpen]=useState(false);const [expanded,setExpanded]=useState(false);const [loading,setLoading]=useState(true);const [error,setError]=useState("");const [busy,setBusy]=useState(false);const [success,setSuccess]=useState("");const collabRef=useRef<HTMLDivElement|null>(null);const previousScroll=useRef(0);
+ const [project,setProject]=useState<Project|null>(null);const [members,setMembers]=useState<Member[]>([]);const [pending,setPending]=useState<Member[]>([]);const [commits,setCommits]=useState<Commit[]>([]);const [query,setQuery]=useState("");const [suggestions,setSuggestions]=useState<Suggestion[]>([]);const [selectedUser,setSelectedUser]=useState<Suggestion|null>(null);const [inviteRole,setInviteRole]=useState<"editor"|"viewer">("editor");const [inviteOpen,setInviteOpen]=useState(false);const [expanded,setExpanded]=useState(false);const [loading,setLoading]=useState(true);const [error,setError]=useState("");const [busy,setBusy]=useState(false);const [success,setSuccess]=useState("");const collabRef=useRef<HTMLDivElement|null>(null);const previousScroll=useRef(0);const [interestData, setInterestData] = useState<{ active: boolean; count: number }>({ active: false, count: 0 });
 
- const load=async()=>{setLoading(true);setError("");const results=await Promise.allSettled([apiFetch<{data:Project}>(`/projects/${encodeURIComponent(slug)}`),apiFetch<{data:Member[]}>(`/social/projects/${encodeURIComponent(slug)}/members`),apiFetch<{data:Commit[]}>(`/social/projects/${encodeURIComponent(slug)}/github-commits`),apiFetch<{data:Member[]}>(`/social/projects/${encodeURIComponent(slug)}/pending-invitations`)]);if(results[0].status==="fulfilled")setProject(results[0].value.data);else setError(results[0].reason instanceof Error?results[0].reason.message:"Project could not be loaded");if(results[1].status==="fulfilled")setMembers(results[1].value.data??[]);if(results[2].status==="fulfilled")setCommits(results[2].value.data??[]);if(results[3].status==="fulfilled")setPending(results[3].value.data??[]);setLoading(false)};
+ const load=async()=>{setLoading(true);setError("");const results=await Promise.allSettled([apiFetch<{data:Project}>(`/projects/${encodeURIComponent(slug)}`),apiFetch<{data:Member[]}>(`/social/projects/${encodeURIComponent(slug)}/members`),apiFetch<{data:Commit[]}>(`/social/projects/${encodeURIComponent(slug)}/github-commits`),apiFetch<{data:Member[]}>(`/social/projects/${encodeURIComponent(slug)}/pending-invitations`)]);if(results[0].status==="fulfilled")setProject(results[0].value.data);else setError(results[0].reason instanceof Error?results[0].reason.message:"Project could not be loaded");if(results[1].status==="fulfilled")setMembers(results[1].value.data??[]);if(results[2].status==="fulfilled")setCommits(results[2].value.data??[]);if(results[3].status==="fulfilled")setPending(results[3].value.data??[]);setLoading(false);try{const interestResp=await apiFetch<{data:{active:boolean;count:number}}>(`/projects/${encodeURIComponent(slug)}/interest`);setInterestData(interestResp.data);}catch{}};
 
   const invite = async () => {
     if (!selectedUser || busy) return;
@@ -166,7 +167,7 @@ export default function ProjectDetailSurface({slug, onClose}:{slug:string; onClo
             <div className="project-stats">
               <div className="project-stat"><strong>{project.posts?.length ?? 0}</strong><span>Updates</span></div>
               <div className="project-stat"><strong>—</strong><span>Followers</span></div>
-              <div className="project-stat"><strong>—</strong><span>Upvotes</span></div>
+              <div className="project-stat"><strong>{interestData.count}</strong><span>Interests</span></div>
             </div>
           </section>
           <section className="project-card">
@@ -274,7 +275,10 @@ export default function ProjectDetailSurface({slug, onClose}:{slug:string; onClo
               <button className="project-back" onClick={handleClose}><ArrowLeft size={14} /> Back</button>
               <div className="project-search"><Search size={14} /><input placeholder="Search projects, posts, people..." aria-label="Search" /></div>
             </div>
-            <button className="project-detail-close" onClick={handleClose} aria-label="Close project details"><X size={16} /></button>
+            <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+              {project && <ProjectInterestButton projectId={project.id} initiallyInterested={interestData.active} initialCount={interestData.count} />}
+              <button className="project-detail-close" onClick={handleClose} aria-label="Close project details"><X size={16} /></button>
+            </div>
           </header>
           <div className="project-detail-body-scroll">
             {renderContent()}

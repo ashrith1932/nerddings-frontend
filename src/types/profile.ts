@@ -63,6 +63,7 @@ export type ProfileAffiliation = {
   verified: boolean;
   role: string;
   status?: string;
+  accountType?: string;
 };
 
 export type ProfileSnapshot = {
