@@ -5,7 +5,7 @@ type HistoryState = { currentId: string | null; stack: string[]; skipNext: boole
 
 const keyFor = (scope: Scope) => `nerdding.active-post-history.${scope}`;
 
-function read(scope: Scope): HistoryState {
+export function readActivePostHistory(scope: Scope): HistoryState {
   if (typeof window === "undefined") return { currentId: null, stack: [], skipNext: false };
   try {
     const raw = sessionStorage.getItem(keyFor(scope));
@@ -20,7 +20,7 @@ function write(scope: Scope, state: HistoryState) {
 }
 
 export function enterActivePost(scope: Scope, postId: string) {
-  const state = read(scope);
+  const state = readActivePostHistory(scope);
   if (state.skipNext) {
     state.skipNext = false;
     state.currentId = postId;
@@ -38,7 +38,7 @@ export function clearActivePostHistory(scope: Scope) {
 }
 
 export function backActivePost(scope: Scope, currentId: string, onEmpty: () => void) {
-  const state = read(scope);
+  const state = readActivePostHistory(scope);
   state.currentId = currentId;
   const previousId = state.stack.pop();
   if (!previousId) {

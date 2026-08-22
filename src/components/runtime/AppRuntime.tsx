@@ -357,9 +357,6 @@ export default function AppRuntime({ path }: { path: string }) {
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
-      // 0. Profile page owns all its own clicks via React
-      if (target.closest(".profile-page")) return;
-
       // 1. Don't intercept clicks inside our own UI
       if (target.closest(".nrt-overlay,.nrt-proj-backdrop")) return;
 
@@ -384,6 +381,9 @@ export default function AppRuntime({ path }: { path: string }) {
         }
         return;
       }
+
+      // 0. Profile page owns all its own clicks via React
+      if (target.closest(".profile-page")) return;
 
       // 4. Author identity → navigate to profile
       const identity = target.closest<HTMLElement>(".home-author,.post-detail-author-button,.post-comment-author,.project-contributor-row");

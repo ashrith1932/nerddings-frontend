@@ -87,6 +87,15 @@ type UiMessage = ServerMessage & {
   clientMessageId?: string;
 };
 
+export type MessageRequest = {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
+  other: Participant;
+};
+
 function messageStatus(
   message: ServerMessage,
   own: boolean,
@@ -340,6 +349,10 @@ import NewMessageModal from "./NewMessageModal";
 export default function MessagesPanel() {
   const currentUser = getSavedUser();
 
+  const [tab, setTab] = useState<"conversations" | "requests">("conversations");
+  const [requests, setRequests] = useState<MessageRequest[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+
   const [conversations, setConversations] = useState<
     Conversation[]
   >([]);
@@ -427,6 +440,25 @@ export default function MessagesPanel() {
     return response.data;
   }
 
+  async function handleRequestAction(requestId: string, action: 'accept' | 'decline') {
+    try {
+      const response = await apiFetch<{ data: any }>(`/messages/requests/${requestId}`, {
+        method: "POST",
+        body: JSON.stringify({ action })
+      });
+      
+      setRequests(current => current.filter(r => r.id !== requestId));
+      
+      if (action === 'accept' && response.data?.conversationId) {
+        await refreshConversations();
+        setTab("conversations");
+        setActiveConversationId(response.data.conversationId);
+      }
+    } catch (e) {
+      console.error("Failed to update request", e);
+    }
+  }
+
   /*
    * Pre-create/register the encryption identity in the background.
    * This removes the first-send RSA key-generation/API delay.
@@ -460,7 +492,15 @@ export default function MessagesPanel() {
 
       try {
         setLoadingConversations(true);
-        const data = await refreshConversations();
+        setLoadingRequests(true);
+        
+        const [data] = await Promise.all([
+          refreshConversations(),
+          apiFetch<{ data: MessageRequest[] }>("/messages/requests")
+            .then(res => setRequests(res.data || []))
+            .catch(() => setRequests([]))
+            .finally(() => setLoadingRequests(false))
+        ]);
 
         if (cancelled) {
           return;
@@ -1739,42 +1779,98 @@ export default function MessagesPanel() {
                 />
               )}
 
-              <div className="messages-search-wrap">
-                <Search
-                  size={16}
+              <div style={{ display: 'flex', gap: 24, marginTop: 18, borderBottom: '1px solid #e5dfd5' }}>
+                <button 
+                  onClick={() => setTab("conversations")}
                   style={{
-                    position: "absolute",
-                    left: 13,
-                    top: 13,
-                    color: "#858078",
+                    border: 0, background: 'none', cursor: 'pointer', padding: '0 0 10px 0',
+                    fontSize: 13, fontWeight: 700,
+                    color: tab === "conversations" ? '#171513' : '#8b857d',
+                    borderBottom: tab === "conversations" ? '2px solid #171513' : '2px solid transparent',
                   }}
-                />
-
-                <input
-                  className="messages-search"
-                  value={search}
-                  onChange={(event) =>
-                    setSearch(
-                      event.target.value,
-                    )
-                  }
-                  placeholder="Search messages"
-                  aria-label="Search messages"
-                />
+                >
+                  Active
+                </button>
+                <button 
+                  onClick={() => setTab("requests")}
+                  style={{
+                    border: 0, background: 'none', cursor: 'pointer', padding: '0 0 10px 0',
+                    fontSize: 13, fontWeight: 700,
+                    color: tab === "requests" ? '#171513' : '#8b857d',
+                    borderBottom: tab === "requests" ? '2px solid #171513' : '2px solid transparent',
+                  }}
+                >
+                  Requests {requests.length > 0 && <span style={{ background: '#f03e3e', color: '#fff', padding: '2px 6px', borderRadius: 10, fontSize: 10, marginLeft: 6 }}>{requests.length}</span>}
+                </button>
               </div>
+
+              {tab === "conversations" && (
+                <div className="messages-search-wrap" style={{ marginTop: 14 }}>
+                  <Search
+                    size={16}
+                    style={{
+                      position: "absolute",
+                      left: 13,
+                      top: 13,
+                      color: "#858078",
+                    }}
+                  />
+                  <input
+                    className="messages-search"
+                    value={search}
+                    onChange={(event) =>
+                      setSearch(
+                        event.target.value,
+                      )
+                    }
+                    placeholder="Search messages"
+                    aria-label="Search messages"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="messages-list">
-              {loadingConversations ? (
-                <ConversationSkeleton />
-              ) : filteredConversations.length ===
-                0 ? (
-                <div className="empty-conversations">
-                  No conversations yet.
-                  <br />
-                  Send a request to start one.
-                </div>
+              {tab === "requests" ? (
+                loadingRequests ? (
+                  <ConversationSkeleton />
+                ) : requests.length === 0 ? (
+                  <div className="empty-conversations">
+                    No pending message requests.
+                  </div>
+                ) : (
+                  requests.map((request) => (
+                    <div key={request.id} className="conversation-row" style={{ flexDirection: 'column', alignItems: 'stretch', cursor: 'default' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                        <Avatar participant={request.other} />
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div className="conversation-name">{request.other.name}</div>
+                          <div className="conversation-preview">@{request.other.username}</div>
+                        </div>
+                      </div>
+                      {request.recipientId === currentUser?.id ? (
+                        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                          <button onClick={() => void handleRequestAction(request.id, 'accept')} style={{ flex: 1, padding: '8px 0', border: 0, background: '#171513', color: '#fff', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Accept</button>
+                          <button onClick={() => void handleRequestAction(request.id, 'decline')} style={{ flex: 1, padding: '8px 0', border: 0, background: '#e9e4db', color: '#171513', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Decline</button>
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 10, fontSize: 12, color: '#8b857d', fontWeight: 600, textAlign: 'center' }}>
+                          Waiting for {request.other.name} to accept
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )
               ) : (
+                loadingConversations ? (
+                  <ConversationSkeleton />
+                ) : filteredConversations.length === 0 ? (
+                  <div className="empty-conversations">
+                    No conversations yet.
+                    <br />
+                    Send a request to start one.
+                  </div>
+                ) : (
                 filteredConversations.map(
                   (conversation) => {
                     const selected =
@@ -1830,6 +1926,7 @@ export default function MessagesPanel() {
                     );
                   },
                 )
+               )
               )}
             </div>
           </aside>
