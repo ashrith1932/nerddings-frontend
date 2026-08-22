@@ -248,7 +248,7 @@ export function LiveFundraisingRoute() {
   {creating && isAgent && (
     <div style={{background:'#fffdf9',border:'1px solid #ded7cf',borderRadius:14,padding:18,marginBottom:18}}>
       <div className="eyebrow" style={{marginBottom:8}}>RAISE FUNDRAISING</div>
-      <form ref={fundFormRef} onSubmit={e => e.preventDefault()} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:9}}>
+      <form ref={fundFormRef} onSubmit={e => { e.preventDefault(); void createFundraising(new FormData(e.currentTarget)); }} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:9}}>
         <label style={{display:'grid',gap:4,fontSize:9,fontWeight:800,color:'#7e756d',gridColumn:'1/-1'}}>Startup Name *<input name="startupName" required maxLength={180} style={{border:'1px solid #ddd6cc',borderRadius:9,padding:'8px 9px',fontSize:10,background:'#fff',outline:'none'}} /></label>
         <label style={{display:'grid',gap:4,fontSize:9,fontWeight:800,color:'#7e756d'}}>Stage *<select name="stage" style={{border:'1px solid #ddd6cc',borderRadius:9,padding:'8px 9px',fontSize:10,background:'#fff'}}><option>Pre-seed</option><option>Seed</option><option>Series A</option><option>Series B</option></select></label>
         <label style={{display:'grid',gap:4,fontSize:9,fontWeight:800,color:'#7e756d'}}>Industry *<input name="industry" required maxLength={80} style={{border:'1px solid #ddd6cc',borderRadius:9,padding:'8px 9px',fontSize:10,background:'#fff',outline:'none'}} /></label>
@@ -257,12 +257,14 @@ export function LiveFundraisingRoute() {
         <label style={{display:'grid',gap:4,fontSize:9,fontWeight:800,color:'#7e756d'}}>Currency<select name="currency" style={{border:'1px solid #ddd6cc',borderRadius:9,padding:'8px 9px',fontSize:10,background:'#fff'}}><option>INR</option><option>USD</option></select></label>
         <label style={{display:'grid',gap:4,fontSize:9,fontWeight:800,color:'#7e756d'}}>Investor Count<input name="investorCount" type="number" min="0" defaultValue="0" style={{border:'1px solid #ddd6cc',borderRadius:9,padding:'8px 9px',fontSize:10,background:'#fff',outline:'none'}} /></label>
         <label style={{display:'grid',gap:4,fontSize:9,fontWeight:800,color:'#7e756d'}}>Visibility<select name="visibility" style={{border:'1px solid #ddd6cc',borderRadius:9,padding:'8px 9px',fontSize:10,background:'#fff'}}><option value="public">Public</option><option value="investors-only">Investors only</option></select></label>
+        <div style={{gridColumn:'1/-1'}}>
+          {createError && <div style={{fontSize:9,color:'#a94027',marginTop:8}}>{createError}</div>}
+          <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:11}}>
+            <button type="button" className="outline-button" onClick={() => setCreating(false)} style={{fontSize:10,padding:'7px 12px'}}>Cancel</button>
+            <button type="submit" className="primary-button" disabled={saving} style={{fontSize:10,padding:'7px 14px'}}>{saving ? 'Publishing...' : 'Publish'}</button>
+          </div>
+        </div>
       </form>
-      {createError && <div style={{fontSize:9,color:'#a94027',marginTop:8}}>{createError}</div>}
-      <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:11}}>
-        <button className="outline-button" onClick={() => setCreating(false)} style={{fontSize:10,padding:'7px 12px'}}>Cancel</button>
-        <button className="primary-button" disabled={saving} onClick={() => void createFundraising(new FormData(fundFormRef.current!))} style={{fontSize:10,padding:'7px 14px'}}>{saving ? 'Publishing…' : 'Publish'}</button>
-      </div>
     </div>
   )}
   {loading ? <div className="live-data-empty"><Loader2 size={20} /></div> : items.length ? <div className="live-data-fundraising">{items.map((item) => <article className="live-fund-card" key={item.id}><div className="live-fund-top"><strong>{item.startupName}</strong><span className="live-fund-stage">{item.stage}</span></div><div className="live-fund-amount">{item.currency} {Number(item.raisedAmount).toLocaleString()}</div><div className="live-fund-sub">raised of {Number(item.targetAmount).toLocaleString()}</div><div className="live-fund-progress"><i style={{ width: `${item.progress}%` }} /></div><div className="live-fund-foot"><span>{item.industry}</span><span>{item.investorCount} investors</span></div></article>)}</div> : <div className="live-data-empty"><BriefcaseBusiness size={20} /><strong>No fundraising profiles yet</strong><span>Verified agents can publish fundraising opportunities here.</span></div>}</div>;
